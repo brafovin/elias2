@@ -879,7 +879,7 @@ function drawUI() {
   uc.fillStyle = 'rgba(233,69,96,0.9)';
   uc.font = 'bold 13px Courier New';
   uc.textAlign = 'left';
-  uc.fillText('Ä = Farbmenü    E = Radierer    Q = Spray', 14, H - barH/2 + 5);
+  uc.fillText('Ä = Farbe    E = Radierer    Q = Spray    M = Alles löschen', 14, H - barH/2 + 5);
 
   // Color indicator
   const indX = W - 80;
@@ -1043,6 +1043,9 @@ document.addEventListener('keydown', e => {
     setTool('spray');
     paintCanvas.style.cursor = 'crosshair';
     drawUI();
+  }
+  if(e.key === 'm' || e.key === 'M') {
+    clearAllPaint();
   }
 });
 
