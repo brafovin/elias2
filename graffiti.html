@@ -879,7 +879,7 @@ function drawUI() {
   uc.fillStyle = 'rgba(233,69,96,0.9)';
   uc.font = 'bold 13px Courier New';
   uc.textAlign = 'left';
-  uc.fillText('Ä = Farbmenü    E = Radierer', 14, H - barH/2 + 5);
+  uc.fillText('Ä = Farbmenü    E = Radierer    Q = Spray', 14, H - barH/2 + 5);
 
   // Color indicator
   const indX = W - 80;
@@ -1035,9 +1035,13 @@ document.addEventListener('keydown', e => {
     toggleMenu();
   }
   if(e.key === 'e' || e.key === 'E') {
-    const newTool = tool === 'eraser' ? 'spray' : 'eraser';
-    setTool(newTool);
-    paintCanvas.style.cursor = newTool === 'eraser' ? 'cell' : 'crosshair';
+    setTool('eraser');
+    paintCanvas.style.cursor = 'cell';
+    drawUI();
+  }
+  if(e.key === 'q' || e.key === 'Q') {
+    setTool('spray');
+    paintCanvas.style.cursor = 'crosshair';
     drawUI();
   }
 });
