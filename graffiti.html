@@ -1035,7 +1035,9 @@ document.addEventListener('keydown', e => {
     toggleMenu();
   }
   if(e.key === 'e' || e.key === 'E') {
-    setTool(tool === 'eraser' ? 'spray' : 'eraser');
+    const newTool = tool === 'eraser' ? 'spray' : 'eraser';
+    setTool(newTool);
+    paintCanvas.style.cursor = newTool === 'eraser' ? 'cell' : 'crosshair';
     drawUI();
   }
 });
