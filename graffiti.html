@@ -279,108 +279,208 @@ function toggleMenu() {
 // ---- Drawing the scene ----
 
 function drawBackground() {
-  // Sky gradient
-  const skyGrad = gc.createLinearGradient(0, 0, 0, H * 0.65);
-  skyGrad.addColorStop(0, '#050510');
-  skyGrad.addColorStop(0.5, '#0d0d2b');
-  skyGrad.addColorStop(1, '#1a1a3a');
+  // Sky gradient — deep urban night
+  const skyGrad = gc.createLinearGradient(0, 0, 0, H * 0.68);
+  skyGrad.addColorStop(0, '#020208');
+  skyGrad.addColorStop(0.4, '#08081e');
+  skyGrad.addColorStop(0.8, '#121228');
+  skyGrad.addColorStop(1, '#1c1830');
   gc.fillStyle = skyGrad;
-  gc.fillRect(0, 0, W, H * 0.65);
+  gc.fillRect(0, 0, W, H * 0.68);
 
-  // Stars
-  gc.fillStyle = 'rgba(255,255,255,0.7)';
-  const stars = [
-    [0.05,0.04],[0.12,0.09],[0.22,0.03],[0.35,0.07],[0.48,0.02],[0.58,0.08],
-    [0.70,0.04],[0.81,0.10],[0.90,0.03],[0.95,0.07],[0.15,0.15],[0.28,0.18],
-    [0.42,0.12],[0.55,0.19],[0.67,0.13],[0.78,0.17],[0.88,0.11],[0.03,0.22],
-    [0.18,0.25],[0.32,0.28],[0.46,0.23],[0.60,0.27],[0.74,0.21],[0.85,0.26],
-    [0.97,0.14],[0.09,0.30],[0.25,0.33],[0.38,0.31],[0.52,0.35],[0.64,0.29],
+  // Stars with varying brightness
+  const starData = [
+    [0.05,0.04,1.8],[0.12,0.09,1.2],[0.22,0.03,2.0],[0.35,0.07,1.0],[0.48,0.02,1.5],[0.58,0.08,1.1],
+    [0.70,0.04,1.8],[0.81,0.10,1.3],[0.90,0.03,1.0],[0.95,0.07,1.6],[0.15,0.15,1.2],[0.28,0.18,0.9],
+    [0.42,0.12,1.4],[0.55,0.19,1.0],[0.67,0.13,1.7],[0.78,0.17,1.1],[0.88,0.11,0.8],[0.03,0.22,1.3],
+    [0.18,0.25,1.0],[0.32,0.28,1.5],[0.46,0.23,1.2],[0.60,0.27,0.9],[0.74,0.21,1.6],[0.85,0.26,1.0],
+    [0.97,0.14,1.4],[0.09,0.30,1.1],[0.25,0.33,0.8],[0.38,0.31,1.3],[0.52,0.35,1.0],[0.64,0.29,1.5],
   ];
-  stars.forEach(([sx,sy]) => {
-    const r = Math.random() < 0.2 ? 1.5 : 1;
+  starData.forEach(([sx,sy,sr]) => {
+    gc.save();
+    gc.fillStyle = `rgba(255,255,255,${0.5 + sr*0.2})`;
+    gc.shadowColor = '#aaaaff';
+    gc.shadowBlur = sr > 1.5 ? 4 : 0;
     gc.beginPath();
-    gc.arc(sx*W, sy*H*0.6, r, 0, Math.PI*2);
+    gc.arc(sx*W, sy*H*0.62, sr*0.7, 0, Math.PI*2);
     gc.fill();
+    gc.restore();
   });
 
-  // Moon
+  // Moon with glow halo
   gc.save();
-  gc.fillStyle = '#ffe8a0';
+  const moonGlow = gc.createRadialGradient(W*0.88, H*0.09, 20, W*0.88, H*0.09, 80);
+  moonGlow.addColorStop(0, 'rgba(255,230,120,0.15)');
+  moonGlow.addColorStop(1, 'rgba(255,230,120,0)');
+  gc.fillStyle = moonGlow;
+  gc.fillRect(W*0.88-80, H*0.09-80, 160, 160);
+  gc.fillStyle = '#ffe9a8';
   gc.shadowColor = '#ffe060';
-  gc.shadowBlur = 20;
+  gc.shadowBlur = 25;
   gc.beginPath();
-  gc.arc(W*0.88, H*0.1, 28, 0, Math.PI*2);
+  gc.arc(W*0.88, H*0.09, 30, 0, Math.PI*2);
   gc.fill();
-  gc.fillStyle = '#0d0d2b';
+  gc.fillStyle = '#08081e';
+  gc.shadowBlur = 0;
   gc.beginPath();
-  gc.arc(W*0.88+12, H*0.1-6, 24, 0, Math.PI*2);
+  gc.arc(W*0.88+13, H*0.09-7, 26, 0, Math.PI*2);
   gc.fill();
   gc.restore();
 
-  // Buildings silhouette
-  gc.fillStyle = '#080818';
-  const buildings = [
-    {x:0.00, y:0.30, w:0.06, h:0.35},
-    {x:0.04, y:0.20, w:0.04, h:0.45},
-    {x:0.07, y:0.28, w:0.05, h:0.37},
-    {x:0.11, y:0.15, w:0.03, h:0.50},
-    {x:0.13, y:0.24, w:0.04, h:0.41},
-    {x:0.16, y:0.32, w:0.06, h:0.33},
-    {x:0.21, y:0.22, w:0.04, h:0.43},
-    {x:0.64, y:0.18, w:0.05, h:0.47},
-    {x:0.68, y:0.25, w:0.04, h:0.40},
-    {x:0.71, y:0.12, w:0.03, h:0.53},
-    {x:0.73, y:0.28, w:0.06, h:0.37},
-    {x:0.78, y:0.20, w:0.04, h:0.45},
-    {x:0.81, y:0.30, w:0.05, h:0.35},
-    {x:0.85, y:0.16, w:0.04, h:0.49},
-    {x:0.88, y:0.26, w:0.05, h:0.39},
-    {x:0.92, y:0.22, w:0.06, h:0.43},
-    {x:0.97, y:0.30, w:0.03, h:0.35},
+  // Buildings — layered depth (far/mid/near)
+  const buildingLayers = [
+    { color: '#0a0a1a', winColor: 'rgba(255,200,80,0.12)', list: [
+      {x:0.00,y:0.22,w:0.07,h:0.46},{x:0.06,y:0.14,w:0.05,h:0.54},
+      {x:0.64,y:0.16,w:0.06,h:0.52},{x:0.88,y:0.18,w:0.07,h:0.50},
+    ]},
+    { color: '#0f0f20', winColor: 'rgba(255,200,80,0.20)', list: [
+      {x:0.04,y:0.26,w:0.05,h:0.42},{x:0.10,y:0.18,w:0.04,h:0.50},
+      {x:0.13,y:0.28,w:0.06,h:0.40},{x:0.18,y:0.20,w:0.04,h:0.48},
+      {x:0.70,y:0.22,w:0.05,h:0.46},{x:0.74,y:0.14,w:0.03,h:0.54},
+      {x:0.77,y:0.26,w:0.06,h:0.42},{x:0.82,y:0.20,w:0.04,h:0.48},
+      {x:0.93,y:0.24,w:0.05,h:0.44},{x:0.97,y:0.28,w:0.03,h:0.40},
+    ]},
+    { color: '#161626', winColor: 'rgba(255,210,100,0.30)', list: [
+      {x:0.00,y:0.32,w:0.04,h:0.36},{x:0.21,y:0.24,w:0.04,h:0.44},
+      {x:0.25,y:0.30,w:0.03,h:0.38},{x:0.65,y:0.30,w:0.04,h:0.38},
+      {x:0.86,y:0.28,w:0.04,h:0.40},{x:0.96,y:0.32,w:0.04,h:0.36},
+    ]},
   ];
-  buildings.forEach(b => {
-    gc.fillRect(b.x*W, b.y*H, b.w*W, b.h*H);
-    // Windows
-    gc.fillStyle = 'rgba(255,220,80,0.25)';
-    for(let wy = b.y*H + 10; wy < (b.y+b.h)*H - 10; wy += 16) {
-      for(let wx = b.x*W + 5; wx < (b.x+b.w)*W - 5; wx += 10) {
-        if(Math.random() < 0.45) {
-          gc.fillRect(wx, wy, 5, 7);
+
+  buildingLayers.forEach(layer => {
+    layer.list.forEach(b => {
+      // Building body with slight gradient
+      const bGrad = gc.createLinearGradient(b.x*W, b.y*H, b.x*W + b.w*W, b.y*H);
+      bGrad.addColorStop(0, layer.color);
+      bGrad.addColorStop(1, shadeColor(layer.color, 10));
+      gc.fillStyle = bGrad;
+      gc.fillRect(b.x*W, b.y*H, b.w*W, b.h*H);
+
+      // Windows with slight randomness
+      for(let wy = b.y*H + 8; wy < (b.y+b.h)*H - 8; wy += 14) {
+        for(let wx = b.x*W + 5; wx < (b.x+b.w)*W - 5; wx += 9) {
+          if(Math.random() < 0.40) {
+            gc.fillStyle = layer.winColor;
+            gc.fillRect(wx, wy, 5, 7);
+            // Occasional bright window
+            if(Math.random() < 0.15) {
+              gc.fillStyle = 'rgba(255,240,120,0.5)';
+              gc.fillRect(wx+1, wy+1, 3, 5);
+            }
+          }
         }
       }
-    }
-    gc.fillStyle = '#080818';
+
+      // Rooftop details (antenna, water tower)
+      if(Math.random() < 0.4) {
+        gc.fillStyle = '#333';
+        gc.fillRect(b.x*W + b.w*W*0.4, b.y*H - 12, 2, 12);
+        gc.fillStyle = '#555';
+        gc.beginPath();
+        gc.arc(b.x*W + b.w*W*0.4 + 1, b.y*H - 14, 4, 0, Math.PI*2);
+        gc.fill();
+      }
+    });
   });
 
-  // Ground
-  const groundGrad = gc.createLinearGradient(0, H*0.65, 0, H);
-  groundGrad.addColorStop(0, '#1a1510');
-  groundGrad.addColorStop(1, '#0a0a08');
-  gc.fillStyle = groundGrad;
-  gc.fillRect(0, H*0.65, W, H*0.35);
-
-  // Tracks
-  const trackY = H * 0.83;
-  gc.strokeStyle = '#555';
-  gc.lineWidth = 3;
-  gc.beginPath(); gc.moveTo(0, trackY); gc.lineTo(W, trackY); gc.stroke();
-  gc.beginPath(); gc.moveTo(0, trackY + 14); gc.lineTo(W, trackY + 14); gc.stroke();
-
-  // Rail ties
-  gc.strokeStyle = '#3a3028';
-  gc.lineWidth = 6;
-  for(let tx = 0; tx < W; tx += 32) {
+  // Street lamp posts
+  [0.05, 0.30, 0.55, 0.80, 0.95].forEach(lx => {
+    const lampX = lx * W;
+    const lampY = H * 0.68;
+    gc.strokeStyle = '#444';
+    gc.lineWidth = 3;
     gc.beginPath();
-    gc.moveTo(tx, trackY - 2);
-    gc.lineTo(tx, trackY + 16);
+    gc.moveTo(lampX, lampY);
+    gc.lineTo(lampX, lampY - H*0.16);
+    gc.lineTo(lampX + 18, lampY - H*0.16);
     gc.stroke();
+    // Lamp glow
+    gc.save();
+    const lampGlow = gc.createRadialGradient(lampX+18, lampY - H*0.16, 0, lampX+18, lampY - H*0.16, 40);
+    lampGlow.addColorStop(0, 'rgba(255,200,80,0.5)');
+    lampGlow.addColorStop(0.4, 'rgba(255,180,60,0.15)');
+    lampGlow.addColorStop(1, 'rgba(255,160,40,0)');
+    gc.fillStyle = lampGlow;
+    gc.fillRect(lampX - 22, lampY - H*0.16 - 40, 80, 80);
+    gc.fillStyle = '#ffe090';
+    gc.shadowColor = '#ffcc44';
+    gc.shadowBlur = 10;
+    gc.beginPath();
+    gc.arc(lampX + 18, lampY - H*0.16, 5, 0, Math.PI*2);
+    gc.fill();
+    gc.restore();
+  });
+
+  // Ground — asphalt texture
+  const groundGrad = gc.createLinearGradient(0, H*0.68, 0, H);
+  groundGrad.addColorStop(0, '#1e1a14');
+  groundGrad.addColorStop(0.3, '#161410');
+  groundGrad.addColorStop(1, '#080806');
+  gc.fillStyle = groundGrad;
+  gc.fillRect(0, H*0.68, W, H*0.32);
+
+  // Asphalt cracks
+  gc.strokeStyle = 'rgba(0,0,0,0.5)';
+  gc.lineWidth = 1;
+  [[0.1,0.75,0.18,0.80],[0.3,0.72,0.35,0.78],[0.6,0.74,0.67,0.82],[0.8,0.76,0.85,0.80]].forEach(([x1,y1,x2,y2]) => {
+    gc.beginPath(); gc.moveTo(x1*W,y1*H); gc.lineTo(x2*W,y2*H); gc.stroke();
+  });
+
+  // Ballast / gravel between tracks
+  gc.fillStyle = '#2a2420';
+  gc.fillRect(0, H*0.82, W, H*0.06);
+  // Gravel dots
+  for(let i = 0; i < 200; i++) {
+    gc.fillStyle = `rgba(${80+Math.random()*40},${70+Math.random()*30},${60+Math.random()*20},0.6)`;
+    gc.fillRect(Math.random()*W, H*0.82 + Math.random()*H*0.06, Math.random()*4+1, Math.random()*3+1);
   }
 
-  // Ground grime / debris
-  gc.fillStyle = 'rgba(255,200,100,0.04)';
-  for(let i = 0; i < 60; i++) {
-    gc.fillRect(Math.random()*W, trackY+18 + Math.random()*(H-trackY-18), Math.random()*30+5, 1);
+  // Rail tracks — steel with highlight
+  const trackY = H * 0.84;
+  [0, 18].forEach(offset => {
+    const railGrad = gc.createLinearGradient(0, trackY+offset, 0, trackY+offset+6);
+    railGrad.addColorStop(0, '#aaa');
+    railGrad.addColorStop(0.4, '#888');
+    railGrad.addColorStop(1, '#444');
+    gc.fillStyle = railGrad;
+    gc.fillRect(0, trackY+offset, W, 6);
+  });
+
+  // Rail ties — wooden sleepers with grain
+  for(let tx = 0; tx < W; tx += 28) {
+    const tieGrad = gc.createLinearGradient(tx, trackY-4, tx+8, trackY-4);
+    tieGrad.addColorStop(0, '#4a3820');
+    tieGrad.addColorStop(0.5, '#5a4828');
+    tieGrad.addColorStop(1, '#3a2818');
+    gc.fillStyle = tieGrad;
+    gc.fillRect(tx, trackY - 5, 8, 30);
+    gc.strokeStyle = 'rgba(0,0,0,0.3)';
+    gc.lineWidth = 0.5;
+    gc.beginPath(); gc.moveTo(tx+2, trackY-4); gc.lineTo(tx+2, trackY+26); gc.stroke();
+    gc.beginPath(); gc.moveTo(tx+5, trackY-4); gc.lineTo(tx+5, trackY+26); gc.stroke();
   }
+
+  // Ground puddles / oil stains
+  gc.save();
+  [[0.15,0.90],[0.45,0.88],[0.72,0.91]].forEach(([px,py]) => {
+    const puddle = gc.createRadialGradient(px*W, py*H, 0, px*W, py*H, 40);
+    puddle.addColorStop(0, 'rgba(30,50,80,0.4)');
+    puddle.addColorStop(0.5, 'rgba(20,30,50,0.2)');
+    puddle.addColorStop(1, 'rgba(0,0,0,0)');
+    gc.fillStyle = puddle;
+    gc.beginPath();
+    gc.ellipse(px*W, py*H, 50, 12, 0, 0, Math.PI*2);
+    gc.fill();
+  });
+  gc.restore();
+}
+
+function shadeColor(hex, amt) {
+  const n = parseInt(hex.slice(1),16);
+  const r = Math.min(255,(n>>16)+amt);
+  const g = Math.min(255,((n>>8)&0xff)+amt);
+  const b = Math.min(255,(n&0xff)+amt);
+  return `rgb(${r},${g},${b})`;
 }
 
 function drawTrain() {
@@ -405,85 +505,189 @@ function drawTrain() {
 }
 
 function drawWagon(x, y, w, h) {
-  const bodyH = h * 0.78;
-  const radius = 8;
+  const bodyH = h * 0.76;
+  const radius = 10;
 
-  // Body shadow
-  gc.fillStyle = 'rgba(0,0,0,0.4)';
-  gc.fillRect(x+4, y+6, w, bodyH);
-
-  // Body
+  // Drop shadow
   gc.save();
-  gc.shadowColor = 'rgba(0,0,0,0.5)';
-  gc.shadowBlur = 10;
+  gc.shadowColor = 'rgba(0,0,0,0.7)';
+  gc.shadowBlur = 18;
+  gc.shadowOffsetX = 5;
+  gc.shadowOffsetY = 8;
   roundRect(gc, x, y, w, bodyH, radius);
-  const bodyGrad = gc.createLinearGradient(x, y, x, y+bodyH);
-  bodyGrad.addColorStop(0, '#c8cdd4');
-  bodyGrad.addColorStop(0.15, '#e0e4ea');
-  bodyGrad.addColorStop(0.5, '#d0d5dc');
-  bodyGrad.addColorStop(0.85, '#b8bcc4');
-  bodyGrad.addColorStop(1, '#909498');
-  gc.fillStyle = bodyGrad;
+  gc.fillStyle = '#000';
   gc.fill();
   gc.restore();
 
-  // Stripe at top
-  gc.fillStyle = '#444';
-  gc.fillRect(x+radius, y, w-radius*2, 7);
+  // Body — metal gradient with side sheen
+  gc.save();
+  roundRect(gc, x, y, w, bodyH, radius);
+  const bodyGrad = gc.createLinearGradient(x, y, x, y+bodyH);
+  bodyGrad.addColorStop(0,    '#b0b5be');
+  bodyGrad.addColorStop(0.08, '#d8dde6');
+  bodyGrad.addColorStop(0.18, '#edf0f5');
+  bodyGrad.addColorStop(0.35, '#d5d9e2');
+  bodyGrad.addColorStop(0.60, '#c8ccd5');
+  bodyGrad.addColorStop(0.85, '#b0b4bc');
+  bodyGrad.addColorStop(1,    '#888c94');
+  gc.fillStyle = bodyGrad;
+  gc.fill();
 
-  // Windows row
-  const winCount = Math.floor(w / 80);
-  const winW = 52;
-  const winH = 34;
-  const winY = y + h*0.13;
+  // Side sheen highlight
+  const sheenGrad = gc.createLinearGradient(x, y, x+w, y);
+  sheenGrad.addColorStop(0,   'rgba(255,255,255,0)');
+  sheenGrad.addColorStop(0.3, 'rgba(255,255,255,0.08)');
+  sheenGrad.addColorStop(0.5, 'rgba(255,255,255,0.14)');
+  sheenGrad.addColorStop(0.7, 'rgba(255,255,255,0.06)');
+  sheenGrad.addColorStop(1,   'rgba(255,255,255,0)');
+  gc.fillStyle = sheenGrad;
+  roundRect(gc, x, y, w, bodyH, radius);
+  gc.fill();
+  gc.restore();
+
+  // Top stripe — dark band
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x+radius, y);
+  gc.lineTo(x+w-radius, y);
+  gc.quadraticCurveTo(x+w, y, x+w, y+radius);
+  gc.lineTo(x+w, y+10);
+  gc.lineTo(x, y+10);
+  gc.lineTo(x, y+radius);
+  gc.quadraticCurveTo(x, y, x+radius, y);
+  gc.closePath();
+  gc.fillStyle = '#2a2c32';
+  gc.fill();
+  gc.restore();
+
+  // Colored accent stripe
+  gc.fillStyle = '#1a3a8a';
+  gc.fillRect(x+radius, y+10, w-radius*2, 6);
+
+  // Panel lines (horizontal riveted seams)
+  gc.strokeStyle = 'rgba(80,85,95,0.5)';
+  gc.lineWidth = 1.2;
+  [0.38, 0.62].forEach(pct => {
+    gc.beginPath();
+    gc.moveTo(x+radius, y + bodyH*pct);
+    gc.lineTo(x+w-radius, y + bodyH*pct);
+    gc.stroke();
+  });
+
+  // Vertical panel dividers
+  gc.strokeStyle = 'rgba(80,85,95,0.25)';
+  gc.lineWidth = 1;
+  const panelDivs = Math.floor(w / 60);
+  for(let pi = 1; pi < panelDivs; pi++) {
+    const px = x + (w / panelDivs) * pi;
+    gc.beginPath();
+    gc.moveTo(px, y+16);
+    gc.lineTo(px, y+bodyH-8);
+    gc.stroke();
+  }
+
+  // Rivets along top seam
+  gc.fillStyle = 'rgba(60,65,75,0.8)';
+  for(let rx = x+20; rx < x+w-10; rx += 22) {
+    gc.beginPath();
+    gc.arc(rx, y+8, 2, 0, Math.PI*2);
+    gc.fill();
+  }
+
+  // Windows
+  const winCount = Math.floor(w / 85);
+  const winW = 58;
+  const winH = h * 0.20;
+  const winY = y + h*0.10;
   const winSpacing = (w - radius*2 - winW*winCount) / (winCount+1);
   for(let wi = 0; wi < winCount; wi++) {
     const wX = x + radius + winSpacing + wi*(winW + winSpacing);
-    // Window frame
-    gc.fillStyle = '#222';
-    gc.fillRect(wX-3, winY-3, winW+6, winH+6);
+    // Outer frame
+    gc.fillStyle = '#1a1c22';
+    roundRect(gc, wX-4, winY-4, winW+8, winH+8, 3);
+    gc.fill();
+    // Inner frame
+    gc.fillStyle = '#2a2c32';
+    roundRect(gc, wX-2, winY-2, winW+4, winH+4, 2);
+    gc.fill();
     // Glass
     const glassGrad = gc.createLinearGradient(wX, winY, wX, winY+winH);
-    glassGrad.addColorStop(0, '#1a2a3a');
-    glassGrad.addColorStop(0.5, '#1e3a5f');
-    glassGrad.addColorStop(1, '#0a1520');
+    glassGrad.addColorStop(0,   '#0e1a28');
+    glassGrad.addColorStop(0.3, '#162540');
+    glassGrad.addColorStop(0.7, '#0e1c32');
+    glassGrad.addColorStop(1,   '#080e18');
     gc.fillStyle = glassGrad;
-    gc.fillRect(wX, winY, winW, winH);
-    // Reflection
-    gc.fillStyle = 'rgba(255,255,255,0.06)';
-    gc.fillRect(wX+3, winY+3, winW*0.3, winH*0.4);
+    roundRect(gc, wX, winY, winW, winH, 1);
+    gc.fill();
+    // Interior glow (faint orange light from inside)
+    gc.fillStyle = 'rgba(255,160,60,0.06)';
+    gc.fillRect(wX+2, winY+winH*0.4, winW-4, winH*0.5);
+    // Reflections
+    gc.fillStyle = 'rgba(255,255,255,0.10)';
+    gc.fillRect(wX+4, winY+3, winW*0.25, winH*0.35);
+    gc.fillStyle = 'rgba(255,255,255,0.05)';
+    gc.fillRect(wX+winW*0.6, winY+3, winW*0.15, winH*0.5);
+    // Rubber seal
+    gc.strokeStyle = 'rgba(30,30,30,0.6)';
+    gc.lineWidth = 1.5;
+    gc.strokeRect(wX, winY, winW, winH);
   }
 
   // Door
-  const doorW = 30;
-  const doorH = bodyH * 0.55;
+  const doorW = 36;
+  const doorH = bodyH * 0.52;
   const doorX = x + w/2 - doorW/2;
-  const doorY = y + bodyH - doorH - 6;
-  gc.fillStyle = '#888';
+  const doorY = y + bodyH - doorH - 4;
+  // Door recess
+  gc.fillStyle = '#6a6e76';
+  roundRect(gc, doorX-2, doorY-2, doorW+4, doorH+4, 3);
+  gc.fill();
+  // Door panel
+  const doorGrad = gc.createLinearGradient(doorX, doorY, doorX+doorW, doorY);
+  doorGrad.addColorStop(0, '#7a7e88');
+  doorGrad.addColorStop(0.5, '#909498');
+  doorGrad.addColorStop(1, '#6a6e76');
+  gc.fillStyle = doorGrad;
   gc.fillRect(doorX, doorY, doorW, doorH);
+  // Door gap line (center split for double door)
   gc.strokeStyle = '#555';
   gc.lineWidth = 1.5;
-  gc.strokeRect(doorX+2, doorY+2, doorW-4, doorH-4);
-  gc.fillStyle = '#aaa';
   gc.beginPath();
-  gc.arc(doorX + doorW - 7, doorY + doorH/2, 3, 0, Math.PI*2);
+  gc.moveTo(doorX + doorW/2, doorY);
+  gc.lineTo(doorX + doorW/2, doorY + doorH);
+  gc.stroke();
+  // Door handle
+  gc.fillStyle = '#ccc';
+  gc.beginPath();
+  gc.roundRect(doorX + doorW*0.72, doorY + doorH*0.45, 5, 14, 2);
+  gc.fill();
+  gc.fillStyle = '#888';
+  gc.beginPath();
+  gc.roundRect(doorX + doorW*0.28 - 5, doorY + doorH*0.45, 5, 14, 2);
   gc.fill();
 
-  // Rivets / panel lines
-  gc.strokeStyle = 'rgba(100,100,100,0.3)';
-  gc.lineWidth = 1;
-  gc.beginPath();
-  gc.moveTo(x+radius, y + bodyH*0.5);
-  gc.lineTo(x+w-radius, y + bodyH*0.5);
-  gc.stroke();
+  // Rust / weathering streaks
+  gc.save();
+  gc.globalAlpha = 0.08;
+  [[x+w*0.15, y+bodyH*0.25],[x+w*0.45, y+bodyH*0.18],[x+w*0.75, y+bodyH*0.30]].forEach(([sx,sy]) => {
+    const rustGrad = gc.createLinearGradient(sx, sy, sx+3, sy+bodyH*0.35);
+    rustGrad.addColorStop(0, '#8B4513');
+    rustGrad.addColorStop(1, 'transparent');
+    gc.fillStyle = rustGrad;
+    gc.fillRect(sx, sy, 3, bodyH*0.35);
+  });
+  gc.restore();
 
-  // Undercarriage
-  gc.fillStyle = '#1a1a1a';
-  gc.fillRect(x+4, y+bodyH, w-8, h*0.1);
+  // Undercarriage frame
+  gc.fillStyle = '#111';
+  gc.fillRect(x+2, y+bodyH, w-4, h*0.09);
+  // Underbody detail
+  gc.fillStyle = '#222';
+  gc.fillRect(x+10, y+bodyH+2, w-20, h*0.04);
 
-  // Bogie (wheel assembly)
-  drawBogieSet(x + w*0.2, y + bodyH + h*0.05, h);
-  drawBogieSet(x + w*0.7, y + bodyH + h*0.05, h);
+  // Bogie sets
+  drawBogieSet(x + w*0.18, y + bodyH + h*0.04, h);
+  drawBogieSet(x + w*0.72, y + bodyH + h*0.04, h);
 }
 
 function drawBogieSet(cx, cy, trainH) {
@@ -584,144 +788,313 @@ function drawLocomotive(x, y, w, h) {
 
 function drawCharacter() {
   const charX = W * 0.27;
-  const charY = H * 0.83 - 4;
-  const scale = H / 600;
+  const charY = H * 0.84;
+  const scale = H / 380;
 
   gc.save();
 
-  // Shadow
-  gc.fillStyle = 'rgba(0,0,0,0.4)';
+  // Ground shadow (ellipse)
+  const shadowGrad = gc.createRadialGradient(charX, charY, 0, charX, charY, 28*scale);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  gc.fillStyle = shadowGrad;
   gc.beginPath();
-  gc.ellipse(charX, charY, 18*scale, 5*scale, 0, 0, Math.PI*2);
+  gc.ellipse(charX, charY, 28*scale, 7*scale, 0, 0, Math.PI*2);
   gc.fill();
 
-  // Sneakers
-  gc.fillStyle = '#fff';
-  gc.fillRect(charX - 14*scale, charY - 8*scale, 13*scale, 8*scale);
-  gc.fillRect(charX + 2*scale, charY - 8*scale, 13*scale, 8*scale);
+  // === SHOES ===
+  // Left shoe
+  gc.fillStyle = '#e8e8e8';
+  gc.beginPath();
+  gc.roundRect(charX - 16*scale, charY - 9*scale, 14*scale, 9*scale, [3*scale,3*scale,4*scale,4*scale]);
+  gc.fill();
+  gc.fillStyle = '#cc2200'; // sole stripe
+  gc.fillRect(charX - 16*scale, charY - 11*scale, 14*scale, 3*scale);
+  gc.fillStyle = '#999';
+  gc.fillRect(charX - 15*scale, charY - 7*scale, 12*scale, 1*scale); // lace line
+  // Right shoe
+  gc.fillStyle = '#e8e8e8';
+  gc.beginPath();
+  gc.roundRect(charX + 2*scale, charY - 9*scale, 14*scale, 9*scale, [3*scale,3*scale,4*scale,4*scale]);
+  gc.fill();
   gc.fillStyle = '#cc2200';
-  gc.fillRect(charX - 14*scale, charY - 10*scale, 13*scale, 3*scale);
-  gc.fillRect(charX + 2*scale, charY - 10*scale, 13*scale, 3*scale);
+  gc.fillRect(charX + 2*scale, charY - 11*scale, 14*scale, 3*scale);
+  gc.fillStyle = '#999';
+  gc.fillRect(charX + 3*scale, charY - 7*scale, 12*scale, 1*scale);
 
-  // Pants (baggy)
-  gc.fillStyle = '#1a1a4a';
-  gc.fillRect(charX - 12*scale, charY - 38*scale, 26*scale, 30*scale);
-  // Pant crease
-  gc.strokeStyle = '#111';
+  // === LEGS / PANTS (baggy) ===
+  // Left leg
+  gc.fillStyle = '#1a1c4a';
+  gc.beginPath();
+  gc.roundRect(charX - 14*scale, charY - 42*scale, 13*scale, 33*scale, 3*scale);
+  gc.fill();
+  // Right leg
+  gc.beginPath();
+  gc.roundRect(charX + 1*scale, charY - 42*scale, 13*scale, 33*scale, 3*scale);
+  gc.fill();
+  // Pant shading
+  gc.fillStyle = 'rgba(0,0,30,0.25)';
+  gc.fillRect(charX - 3*scale, charY - 42*scale, 6*scale, 33*scale);
+  // Pant crease stitch
+  gc.strokeStyle = 'rgba(100,100,180,0.3)';
+  gc.lineWidth = 1*scale;
+  gc.setLineDash([3*scale, 3*scale]);
+  gc.beginPath();
+  gc.moveTo(charX - 8*scale, charY - 41*scale);
+  gc.lineTo(charX - 8*scale, charY - 12*scale);
+  gc.stroke();
+  gc.beginPath();
+  gc.moveTo(charX + 8*scale, charY - 41*scale);
+  gc.lineTo(charX + 8*scale, charY - 12*scale);
+  gc.stroke();
+  gc.setLineDash([]);
+
+  // === BELT ===
+  gc.fillStyle = '#1a1a1a';
+  gc.fillRect(charX - 14*scale, charY - 44*scale, 28*scale, 5*scale);
+  // Belt buckle
+  const buckleGrad = gc.createLinearGradient(charX-4*scale, charY-45*scale, charX+4*scale, charY-45*scale);
+  buckleGrad.addColorStop(0, '#aaa');
+  buckleGrad.addColorStop(0.5, '#eee');
+  buckleGrad.addColorStop(1, '#888');
+  gc.fillStyle = buckleGrad;
+  gc.fillRect(charX - 4*scale, charY - 46*scale, 8*scale, 7*scale);
+
+  // === HOODIE BODY ===
+  const hoodieGrad = gc.createLinearGradient(charX - 15*scale, charY - 80*scale, charX + 15*scale, charY - 40*scale);
+  hoodieGrad.addColorStop(0, '#2e2e2e');
+  hoodieGrad.addColorStop(0.4, '#222');
+  hoodieGrad.addColorStop(1, '#1a1a1a');
+  gc.fillStyle = hoodieGrad;
+  gc.beginPath();
+  gc.roundRect(charX - 15*scale, charY - 80*scale, 30*scale, 38*scale, [6*scale, 6*scale, 3*scale, 3*scale]);
+  gc.fill();
+  // Hoodie fabric fold lines
+  gc.strokeStyle = 'rgba(255,255,255,0.05)';
+  gc.lineWidth = 1*scale;
+  gc.beginPath();
+  gc.moveTo(charX - 5*scale, charY - 78*scale);
+  gc.lineTo(charX - 8*scale, charY - 44*scale);
+  gc.stroke();
+  gc.beginPath();
+  gc.moveTo(charX + 5*scale, charY - 78*scale);
+  gc.lineTo(charX + 8*scale, charY - 44*scale);
+  gc.stroke();
+  // Center zip line
+  gc.strokeStyle = 'rgba(80,80,80,0.6)';
   gc.lineWidth = 1.5*scale;
   gc.beginPath();
-  gc.moveTo(charX, charY - 38*scale);
-  gc.lineTo(charX, charY - 10*scale);
+  gc.moveTo(charX, charY - 78*scale);
+  gc.lineTo(charX, charY - 56*scale);
   gc.stroke();
-
-  // Belt
-  gc.fillStyle = '#333';
-  gc.fillRect(charX - 12*scale, charY - 40*scale, 26*scale, 4*scale);
-  gc.fillStyle = '#888';
-  gc.fillRect(charX - 5*scale, charY - 41*scale, 10*scale, 6*scale);
-
-  // Hoodie body
-  gc.fillStyle = '#2a2a2a';
-  gc.fillRect(charX - 13*scale, charY - 76*scale, 28*scale, 40*scale);
-
   // Hoodie pocket
-  gc.fillStyle = '#1a1a1a';
-  gc.fillRect(charX - 8*scale, charY - 52*scale, 16*scale, 12*scale);
+  gc.fillStyle = '#181818';
+  gc.beginPath();
+  gc.roundRect(charX - 9*scale, charY - 55*scale, 18*scale, 11*scale, 3*scale);
+  gc.fill();
+  gc.strokeStyle = 'rgba(255,255,255,0.08)';
+  gc.lineWidth = 1*scale;
+  gc.strokeRect(charX - 9*scale, charY - 55*scale, 18*scale, 11*scale);
 
-  // Right arm (holding spray can - extended toward train)
-  gc.fillStyle = '#2a2a2a';
-  // Upper arm
+  // === ARMS ===
+  // Left arm (relaxed, hanging slightly)
+  gc.fillStyle = '#222';
   gc.save();
-  gc.translate(charX + 13*scale, charY - 68*scale);
-  gc.rotate(-0.4);
-  gc.fillRect(-5*scale, 0, 10*scale, 22*scale);
+  gc.translate(charX - 15*scale, charY - 76*scale);
+  gc.rotate(0.18);
+  gc.beginPath();
+  gc.roundRect(-6*scale, 0, 11*scale, 28*scale, 4*scale);
+  gc.fill();
+  gc.restore();
+  // Left hand / glove
+  gc.fillStyle = '#111';
+  gc.beginPath();
+  gc.arc(charX - 12*scale, charY - 49*scale, 5*scale, 0, Math.PI*2);
+  gc.fill();
+
+  // Right arm (extended, holding can)
+  gc.fillStyle = '#222';
+  gc.save();
+  gc.translate(charX + 15*scale, charY - 76*scale);
+  gc.rotate(-0.55);
+  gc.beginPath();
+  gc.roundRect(-5*scale, 0, 10*scale, 26*scale, 4*scale);
+  gc.fill();
   gc.restore();
   // Forearm
   gc.save();
-  gc.translate(charX + 20*scale, charY - 54*scale);
-  gc.rotate(-0.7);
-  gc.fillRect(-4*scale, 0, 8*scale, 20*scale);
+  gc.translate(charX + 28*scale, charY - 60*scale);
+  gc.rotate(-0.9);
+  gc.beginPath();
+  gc.roundRect(-4*scale, 0, 9*scale, 22*scale, 3*scale);
+  gc.fill();
   gc.restore();
 
-  // Left arm (casual)
-  gc.fillStyle = '#2a2a2a';
-  gc.save();
-  gc.translate(charX - 13*scale, charY - 68*scale);
-  gc.rotate(0.2);
-  gc.fillRect(-5*scale, 0, 10*scale, 20*scale);
-  gc.restore();
-
-  // Spray can
-  const canX = charX + 34*scale;
-  const canY = charY - 42*scale;
-  // Can body
-  const canGrad = gc.createLinearGradient(canX-5*scale, canY, canX+5*scale, canY);
-  canGrad.addColorStop(0, '#cc0000');
-  canGrad.addColorStop(0.5, '#ff3300');
-  canGrad.addColorStop(1, '#880000');
+  // === SPRAY CAN ===
+  const canX = charX + 42*scale;
+  const canY = charY - 46*scale;
+  // Can body with metallic gradient
+  const canGrad = gc.createLinearGradient(canX-6*scale, canY, canX+6*scale, canY);
+  canGrad.addColorStop(0,   '#990000');
+  canGrad.addColorStop(0.3, '#dd2200');
+  canGrad.addColorStop(0.55,'#ff4400');
+  canGrad.addColorStop(0.75,'#cc2200');
+  canGrad.addColorStop(1,   '#880000');
   gc.fillStyle = canGrad;
   gc.beginPath();
-  gc.roundRect(canX - 5*scale, canY - 20*scale, 10*scale, 24*scale, 3*scale);
+  gc.roundRect(canX - 6*scale, canY - 24*scale, 12*scale, 28*scale, 4*scale);
   gc.fill();
+  // Can label band
+  gc.fillStyle = 'rgba(255,255,255,0.12)';
+  gc.fillRect(canX - 6*scale, canY - 14*scale, 12*scale, 6*scale);
   // Can cap
+  const capGrad = gc.createLinearGradient(canX-5*scale, canY-28*scale, canX+5*scale, canY-28*scale);
+  capGrad.addColorStop(0, '#ccc');
+  capGrad.addColorStop(0.5, '#fff');
+  capGrad.addColorStop(1, '#aaa');
+  gc.fillStyle = capGrad;
+  gc.beginPath();
+  gc.roundRect(canX - 5*scale, canY - 30*scale, 10*scale, 7*scale, 3*scale);
+  gc.fill();
+  // Nozzle tip
+  gc.fillStyle = '#ccc';
+  gc.fillRect(canX + 5*scale, canY - 28*scale, 7*scale, 3*scale);
   gc.fillStyle = '#fff';
   gc.beginPath();
-  gc.roundRect(canX - 4*scale, canY - 24*scale, 8*scale, 6*scale, 2*scale);
+  gc.arc(canX + 12*scale, canY - 27*scale, 2*scale, 0, Math.PI*2);
   gc.fill();
-  // Nozzle
-  gc.fillStyle = '#ddd';
-  gc.fillRect(canX + 4*scale, canY - 22*scale, 5*scale, 3*scale);
 
-  // Spray burst
+  // Spray burst from nozzle
   gc.save();
-  const sprayGrad = gc.createRadialGradient(canX+18*scale, canY-21*scale, 0, canX+18*scale, canY-21*scale, 14*scale);
-  sprayGrad.addColorStop(0, 'rgba(255,50,0,0.6)');
-  sprayGrad.addColorStop(0.5, 'rgba(255,100,0,0.25)');
-  sprayGrad.addColorStop(1, 'rgba(255,150,50,0)');
-  gc.fillStyle = sprayGrad;
-  gc.beginPath();
-  gc.arc(canX+18*scale, canY-21*scale, 14*scale, 0, Math.PI*2);
-  gc.fill();
+  for(let si = 0; si < 3; si++) {
+    const bx = canX + (14 + si*6)*scale;
+    const by = canY - 27*scale;
+    const br = (10 + si*5)*scale;
+    const sprayGrad = gc.createRadialGradient(bx, by, 0, bx, by, br);
+    sprayGrad.addColorStop(0, `rgba(255,80,20,${0.35 - si*0.08})`);
+    sprayGrad.addColorStop(0.5, `rgba(255,120,40,${0.15 - si*0.04})`);
+    sprayGrad.addColorStop(1, 'rgba(255,160,60,0)');
+    gc.fillStyle = sprayGrad;
+    gc.beginPath();
+    gc.ellipse(bx, by, br, br*0.7, -0.1, 0, Math.PI*2);
+    gc.fill();
+  }
+  // Fine mist particles
+  for(let p = 0; p < 12; p++) {
+    const ang = (Math.random() - 0.5) * 0.8 - 0.1;
+    const dist = (10 + Math.random() * 22) * scale;
+    gc.fillStyle = `rgba(255,${80+Math.random()*80},20,${Math.random()*0.4})`;
+    gc.beginPath();
+    gc.arc(canX + 12*scale + Math.cos(ang)*dist, canY - 27*scale + Math.sin(ang)*dist, Math.random()*1.5*scale+0.3*scale, 0, Math.PI*2);
+    gc.fill();
+  }
   gc.restore();
 
-  // Head
-  gc.fillStyle = '#c8a070';
+  // Right hand gripping can
+  gc.fillStyle = '#111';
   gc.beginPath();
-  gc.arc(charX, charY - 84*scale, 14*scale, 0, Math.PI*2);
+  gc.arc(canX - 2*scale, canY - 16*scale, 6*scale, 0, Math.PI*2);
   gc.fill();
 
-  // Beanie hat
-  gc.fillStyle = '#cc2200';
+  // === HEAD ===
+  // Neck
+  gc.fillStyle = '#c09060';
+  gc.fillRect(charX - 4*scale, charY - 84*scale, 8*scale, 8*scale);
+
+  // Head shape (slightly oval)
+  const faceGrad = gc.createRadialGradient(charX - 3*scale, charY - 90*scale, 2*scale, charX, charY - 88*scale, 16*scale);
+  faceGrad.addColorStop(0, '#ddb888');
+  faceGrad.addColorStop(0.6, '#c8a070');
+  faceGrad.addColorStop(1, '#a07840');
+  gc.fillStyle = faceGrad;
   gc.beginPath();
-  gc.arc(charX, charY - 88*scale, 14*scale, Math.PI, Math.PI*2);
+  gc.ellipse(charX, charY - 88*scale, 14*scale, 16*scale, 0, 0, Math.PI*2);
   gc.fill();
-  gc.fillRect(charX - 15*scale, charY - 90*scale, 30*scale, 8*scale);
-  gc.fillStyle = '#aa0000';
-  gc.fillRect(charX - 15*scale, charY - 90*scale, 30*scale, 4*scale);
+
+  // === BEANIE ===
+  gc.fillStyle = '#bb1e00';
+  gc.beginPath();
+  gc.ellipse(charX, charY - 98*scale, 15*scale, 10*scale, 0, Math.PI, Math.PI*2);
+  gc.fill();
+  gc.fillRect(charX - 15*scale, charY - 98*scale, 30*scale, 10*scale);
+  // Beanie fold line
+  gc.fillStyle = '#991500';
+  gc.fillRect(charX - 15*scale, charY - 92*scale, 30*scale, 4*scale);
   // Pompom
-  gc.fillStyle = '#ff3322';
+  const pompGrad = gc.createRadialGradient(charX-1*scale, charY-108*scale, 0, charX, charY-107*scale, 6*scale);
+  pompGrad.addColorStop(0, '#ff6644');
+  pompGrad.addColorStop(0.6, '#cc2200');
+  pompGrad.addColorStop(1, '#991100');
+  gc.fillStyle = pompGrad;
   gc.beginPath();
-  gc.arc(charX, charY - 103*scale, 5*scale, 0, Math.PI*2);
+  gc.arc(charX, charY - 107*scale, 6*scale, 0, Math.PI*2);
   gc.fill();
 
-  // Face
-  gc.fillStyle = '#000';
+  // === FACE DETAILS ===
+  // Eyebrows
+  gc.strokeStyle = '#4a3020';
+  gc.lineWidth = 2*scale;
   gc.beginPath();
-  gc.arc(charX - 4*scale, charY - 84*scale, 2*scale, 0, Math.PI*2);
-  gc.fill();
+  gc.moveTo(charX - 8*scale, charY - 87*scale);
+  gc.lineTo(charX - 3*scale, charY - 89*scale);
+  gc.stroke();
   gc.beginPath();
-  gc.arc(charX + 4*scale, charY - 84*scale, 2*scale, 0, Math.PI*2);
-  gc.fill();
-  gc.strokeStyle = '#000';
-  gc.lineWidth = 1.5;
-  gc.beginPath();
-  gc.arc(charX + 1*scale, charY - 79*scale, 4*scale, 0.1, Math.PI-0.1);
+  gc.moveTo(charX + 3*scale, charY - 89*scale);
+  gc.lineTo(charX + 8*scale, charY - 87*scale);
   gc.stroke();
 
-  // Mask over lower face
-  gc.fillStyle = '#333';
+  // Eyes — whites + iris + pupil
+  gc.fillStyle = '#fff';
   gc.beginPath();
-  gc.roundRect(charX - 8*scale, charY - 81*scale, 16*scale, 8*scale, 4*scale);
+  gc.ellipse(charX - 5*scale, charY - 85*scale, 3.5*scale, 2.5*scale, 0, 0, Math.PI*2);
+  gc.fill();
+  gc.beginPath();
+  gc.ellipse(charX + 5*scale, charY - 85*scale, 3.5*scale, 2.5*scale, 0, 0, Math.PI*2);
+  gc.fill();
+  gc.fillStyle = '#3a2010';
+  gc.beginPath();
+  gc.arc(charX - 4.5*scale, charY - 85*scale, 2*scale, 0, Math.PI*2);
+  gc.fill();
+  gc.beginPath();
+  gc.arc(charX + 5.5*scale, charY - 85*scale, 2*scale, 0, Math.PI*2);
+  gc.fill();
+  gc.fillStyle = '#000';
+  gc.beginPath();
+  gc.arc(charX - 4.5*scale, charY - 85*scale, 1*scale, 0, Math.PI*2);
+  gc.fill();
+  gc.beginPath();
+  gc.arc(charX + 5.5*scale, charY - 85*scale, 1*scale, 0, Math.PI*2);
+  gc.fill();
+  // Eye shine
+  gc.fillStyle = 'rgba(255,255,255,0.7)';
+  gc.beginPath();
+  gc.arc(charX - 3.8*scale, charY - 86*scale, 0.8*scale, 0, Math.PI*2);
+  gc.fill();
+  gc.beginPath();
+  gc.arc(charX + 6.2*scale, charY - 86*scale, 0.8*scale, 0, Math.PI*2);
+  gc.fill();
+
+  // Mask (balaclava-style)
+  const maskGrad = gc.createLinearGradient(charX - 10*scale, charY - 83*scale, charX + 10*scale, charY - 78*scale);
+  maskGrad.addColorStop(0, '#2a2a2a');
+  maskGrad.addColorStop(0.5, '#383838');
+  maskGrad.addColorStop(1, '#1e1e1e');
+  gc.fillStyle = maskGrad;
+  gc.beginPath();
+  gc.roundRect(charX - 10*scale, charY - 83*scale, 20*scale, 10*scale, [2*scale, 2*scale, 5*scale, 5*scale]);
+  gc.fill();
+  // Mask stitching
+  gc.strokeStyle = 'rgba(255,255,255,0.08)';
+  gc.lineWidth = 0.8*scale;
+  gc.beginPath();
+  gc.moveTo(charX - 9*scale, charY - 80*scale);
+  gc.lineTo(charX + 9*scale, charY - 80*scale);
+  gc.stroke();
+
+  // Ear
+  gc.fillStyle = '#c09060';
+  gc.beginPath();
+  gc.ellipse(charX - 14*scale, charY - 87*scale, 3*scale, 4*scale, 0.2, 0, Math.PI*2);
   gc.fill();
 
   gc.restore();
