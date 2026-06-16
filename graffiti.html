@@ -999,7 +999,12 @@ paintCanvas.addEventListener('mousedown', e => {
   if(!sprayRAF) sprayRAF = requestAnimationFrame(sprayLoop);
 });
 paintCanvas.addEventListener('mousemove', e => {
-  if(!isDrawing || menuOpen) return;
+  if(menuOpen) return;
+  if(tool === 'eraser') {
+    sprayPaint(e.clientX, e.clientY);
+    return;
+  }
+  if(!isDrawing) return;
   targetX = e.clientX; targetY = e.clientY;
 });
 paintCanvas.addEventListener('mouseup', () => { isDrawing = false; sprayRAF = null; });
