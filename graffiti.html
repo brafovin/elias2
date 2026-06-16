@@ -14,12 +14,12 @@
   }
   #gameCanvas {
     display: block;
-    cursor: crosshair;
+    cursor: none;
   }
   #paintCanvas {
     position: absolute;
     top: 0; left: 0;
-    cursor: crosshair;
+    cursor: none;
     pointer-events: none;
   }
   #uiCanvas {
@@ -1419,7 +1419,9 @@ function drawUI() {
 
   // Draw the moving spray can at current lerped position
   const scale = H / 380;
-  drawCan(mouseX, mouseY - 50*scale);
+  // Position can so nozzle tip sits exactly on cursor
+  const _s = H / 380;
+  drawCan(mouseX - 12*_s, mouseY + 27*_s);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -1585,12 +1587,12 @@ document.addEventListener('keydown', e => {
   }
   if(e.key === 'e' || e.key === 'E') {
     setTool('eraser');
-    paintCanvas.style.cursor = 'cell';
+    paintCanvas.style.cursor = 'none';
     drawUI();
   }
   if(e.key === 'q' || e.key === 'Q') {
     setTool('spray');
-    paintCanvas.style.cursor = 'crosshair';
+    paintCanvas.style.cursor = 'none';
     drawUI();
   }
   if(e.key === 'm' || e.key === 'M') {
