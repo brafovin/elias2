@@ -202,6 +202,10 @@ let tool = 'spray';
 let brushSize = 18;
 let paintOpacity = 0.70;
 let isDrawing = false;
+let sprayX = 0, sprayY = 0;    // current (smoothed) spray position
+let targetX = 0, targetY = 0;  // where the mouse actually is
+let sprayRAF = null;
+const LERP = 0.08; // lower = slower/smoother (0.0–1.0)
 let menuOpen = false;
 let selectedColor = '#ff2200';
 let trainRegion = { x: 0, y: 0, w: 0, h: 0 };
@@ -875,7 +879,7 @@ function drawUI() {
   uc.fillStyle = 'rgba(233,69,96,0.9)';
   uc.font = 'bold 13px Courier New';
   uc.textAlign = 'left';
-  uc.fillText('Ä = Farbmenü    Entf = Alles löschen', 14, H - barH/2 + 5);
+  uc.fillText('Ä = Farbmenü    E = Alles löschen', 14, H - barH/2 + 5);
 
   // Color indicator
   const indX = W - 80;
@@ -979,17 +983,27 @@ function sprayPaint(x, y) {
 // Input
 paintCanvas.style.pointerEvents = 'auto';
 
+function sprayLoop() {
+  if(!isDrawing) { sprayRAF = null; return; }
+  sprayX += (targetX - sprayX) * LERP;
+  sprayY += (targetY - sprayY) * LERP;
+  sprayPaint(sprayX, sprayY);
+  sprayRAF = requestAnimationFrame(sprayLoop);
+}
+
 paintCanvas.addEventListener('mousedown', e => {
   if(menuOpen) return;
   isDrawing = true;
-  sprayPaint(e.clientX, e.clientY);
+  sprayX = e.clientX; sprayY = e.clientY;
+  targetX = e.clientX; targetY = e.clientY;
+  if(!sprayRAF) sprayRAF = requestAnimationFrame(sprayLoop);
 });
 paintCanvas.addEventListener('mousemove', e => {
   if(!isDrawing || menuOpen) return;
-  sprayPaint(e.clientX, e.clientY);
+  targetX = e.clientX; targetY = e.clientY;
 });
-paintCanvas.addEventListener('mouseup', () => { isDrawing = false; });
-paintCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
+paintCanvas.addEventListener('mouseup', () => { isDrawing = false; sprayRAF = null; });
+paintCanvas.addEventListener('mouseleave', () => { isDrawing = false; sprayRAF = null; });
 
 // Touch support
 paintCanvas.addEventListener('touchstart', e => {
@@ -1015,7 +1029,7 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && menuOpen) {
     toggleMenu();
   }
-  if(e.key === 'Delete' || e.key === 'Entf') {
+  if(e.key === 'e' || e.key === 'E') {
     clearAllPaint();
   }
 });
