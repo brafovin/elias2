@@ -52,7 +52,7 @@
   }
   .color-grid {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 3px;
     margin-bottom: 15px;
   }
@@ -207,31 +207,12 @@ let trainRegion = { x: 0, y: 0, w: 0, h: 0 };
 
 // Color palette
 const colors = [
-  '#ff0000','#ff3300','#ff6600','#ff9900','#ffcc00','#ffff00',
-  '#ccff00','#99ff00','#66ff00','#33ff00',
-  '#00ff00','#00ff33','#00ff66','#00ff99','#00ffcc','#00ffff',
-  '#00ccff','#0099ff','#0066ff','#0033ff',
-  '#0000ff','#3300ff','#6600ff','#9900ff','#cc00ff','#ff00ff',
-  '#ff00cc','#ff0099','#ff0066','#ff0033',
-  '#ffffff','#dddddd','#aaaaaa','#888888','#555555','#222222',
-  '#ff8080','#80ff80','#8080ff','#ffff80',
-  '#ff80ff','#80ffff','#ffa040','#40a0ff','#ff4080','#80ff40',
-  '#c0a000','#a000c0','#00a0c0','#c00040',
-  '#ffe0c0','#c0e0ff','#ffc0e0','#e0ffc0',
-  '#400000','#004000','#000040','#404000',
-  '#ff6666','#66ff66','#6666ff','#ffaa66',
-  '#aa66ff','#66ffaa','#ffdd44','#44ddff',
-  '#ff44dd','#44ffdd','#ff8844','#44ff88',
-  '#8844ff','#88ff44','#ff4488','#4488ff',
-  '#ff2266','#66ff22','#2266ff','#ff6622',
-  '#6622ff','#22ff66','#ffcc44','#44ccff',
-  '#ff44cc','#44ffcc','#cc44ff','#ccff44',
-  '#ff0044','#44ff00','#0044ff','#ff4400',
-  '#4400ff','#00ff44','#aaff00','#00aaff',
-  '#ff00aa','#ffaa00','#00ffaa','#aa00ff',
-  '#ff5500','#00ff55','#5500ff','#ff0055',
-  '#55ff00','#0055ff','#ffbb00','#00bbff',
-  '#ff00bb','#bbff00','#00ffbb','#bb00ff',
+  '#ff0000','#ff6600','#ffcc00','#ffff00','#ccff00',
+  '#00ff00','#00ffcc','#00ffff','#0099ff','#0000ff',
+  '#6600ff','#cc00ff','#ff00ff','#ff0066','#ff0033',
+  '#ffffff','#aaaaaa','#555555','#222222','#000000',
+  '#ff8080','#ffa040','#80ff80','#80ffff','#8080ff',
+  '#ff80ff','#c0a000','#00a0c0','#a000c0','#884400',
 ];
 
 // Build color grid
@@ -787,152 +768,24 @@ function drawLocomotive(x, y, w, h) {
 }
 
 function drawCharacter() {
-  const charX = W * 0.27;
+  const charX = W * 0.12;
   const charY = H * 0.84;
   const scale = H / 380;
 
   gc.save();
 
-  // Ground shadow (ellipse)
-  const shadowGrad = gc.createRadialGradient(charX, charY, 0, charX, charY, 28*scale);
-  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
+  // Ground shadow
+  const shadowGrad = gc.createRadialGradient(charX, charY, 0, charX, charY, 18*scale);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
   shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
   gc.fillStyle = shadowGrad;
   gc.beginPath();
-  gc.ellipse(charX, charY, 28*scale, 7*scale, 0, 0, Math.PI*2);
+  gc.ellipse(charX, charY, 18*scale, 5*scale, 0, 0, Math.PI*2);
   gc.fill();
 
-  // === SHOES ===
-  // Left shoe
-  gc.fillStyle = '#e8e8e8';
-  gc.beginPath();
-  gc.roundRect(charX - 16*scale, charY - 9*scale, 14*scale, 9*scale, [3*scale,3*scale,4*scale,4*scale]);
-  gc.fill();
-  gc.fillStyle = '#cc2200'; // sole stripe
-  gc.fillRect(charX - 16*scale, charY - 11*scale, 14*scale, 3*scale);
-  gc.fillStyle = '#999';
-  gc.fillRect(charX - 15*scale, charY - 7*scale, 12*scale, 1*scale); // lace line
-  // Right shoe
-  gc.fillStyle = '#e8e8e8';
-  gc.beginPath();
-  gc.roundRect(charX + 2*scale, charY - 9*scale, 14*scale, 9*scale, [3*scale,3*scale,4*scale,4*scale]);
-  gc.fill();
-  gc.fillStyle = '#cc2200';
-  gc.fillRect(charX + 2*scale, charY - 11*scale, 14*scale, 3*scale);
-  gc.fillStyle = '#999';
-  gc.fillRect(charX + 3*scale, charY - 7*scale, 12*scale, 1*scale);
-
-  // === LEGS / PANTS (baggy) ===
-  // Left leg
-  gc.fillStyle = '#1a1c4a';
-  gc.beginPath();
-  gc.roundRect(charX - 14*scale, charY - 42*scale, 13*scale, 33*scale, 3*scale);
-  gc.fill();
-  // Right leg
-  gc.beginPath();
-  gc.roundRect(charX + 1*scale, charY - 42*scale, 13*scale, 33*scale, 3*scale);
-  gc.fill();
-  // Pant shading
-  gc.fillStyle = 'rgba(0,0,30,0.25)';
-  gc.fillRect(charX - 3*scale, charY - 42*scale, 6*scale, 33*scale);
-  // Pant crease stitch
-  gc.strokeStyle = 'rgba(100,100,180,0.3)';
-  gc.lineWidth = 1*scale;
-  gc.setLineDash([3*scale, 3*scale]);
-  gc.beginPath();
-  gc.moveTo(charX - 8*scale, charY - 41*scale);
-  gc.lineTo(charX - 8*scale, charY - 12*scale);
-  gc.stroke();
-  gc.beginPath();
-  gc.moveTo(charX + 8*scale, charY - 41*scale);
-  gc.lineTo(charX + 8*scale, charY - 12*scale);
-  gc.stroke();
-  gc.setLineDash([]);
-
-  // === BELT ===
-  gc.fillStyle = '#1a1a1a';
-  gc.fillRect(charX - 14*scale, charY - 44*scale, 28*scale, 5*scale);
-  // Belt buckle
-  const buckleGrad = gc.createLinearGradient(charX-4*scale, charY-45*scale, charX+4*scale, charY-45*scale);
-  buckleGrad.addColorStop(0, '#aaa');
-  buckleGrad.addColorStop(0.5, '#eee');
-  buckleGrad.addColorStop(1, '#888');
-  gc.fillStyle = buckleGrad;
-  gc.fillRect(charX - 4*scale, charY - 46*scale, 8*scale, 7*scale);
-
-  // === HOODIE BODY ===
-  const hoodieGrad = gc.createLinearGradient(charX - 15*scale, charY - 80*scale, charX + 15*scale, charY - 40*scale);
-  hoodieGrad.addColorStop(0, '#2e2e2e');
-  hoodieGrad.addColorStop(0.4, '#222');
-  hoodieGrad.addColorStop(1, '#1a1a1a');
-  gc.fillStyle = hoodieGrad;
-  gc.beginPath();
-  gc.roundRect(charX - 15*scale, charY - 80*scale, 30*scale, 38*scale, [6*scale, 6*scale, 3*scale, 3*scale]);
-  gc.fill();
-  // Hoodie fabric fold lines
-  gc.strokeStyle = 'rgba(255,255,255,0.05)';
-  gc.lineWidth = 1*scale;
-  gc.beginPath();
-  gc.moveTo(charX - 5*scale, charY - 78*scale);
-  gc.lineTo(charX - 8*scale, charY - 44*scale);
-  gc.stroke();
-  gc.beginPath();
-  gc.moveTo(charX + 5*scale, charY - 78*scale);
-  gc.lineTo(charX + 8*scale, charY - 44*scale);
-  gc.stroke();
-  // Center zip line
-  gc.strokeStyle = 'rgba(80,80,80,0.6)';
-  gc.lineWidth = 1.5*scale;
-  gc.beginPath();
-  gc.moveTo(charX, charY - 78*scale);
-  gc.lineTo(charX, charY - 56*scale);
-  gc.stroke();
-  // Hoodie pocket
-  gc.fillStyle = '#181818';
-  gc.beginPath();
-  gc.roundRect(charX - 9*scale, charY - 55*scale, 18*scale, 11*scale, 3*scale);
-  gc.fill();
-  gc.strokeStyle = 'rgba(255,255,255,0.08)';
-  gc.lineWidth = 1*scale;
-  gc.strokeRect(charX - 9*scale, charY - 55*scale, 18*scale, 11*scale);
-
-  // === ARMS ===
-  // Left arm (relaxed, hanging slightly)
-  gc.fillStyle = '#222';
-  gc.save();
-  gc.translate(charX - 15*scale, charY - 76*scale);
-  gc.rotate(0.18);
-  gc.beginPath();
-  gc.roundRect(-6*scale, 0, 11*scale, 28*scale, 4*scale);
-  gc.fill();
-  gc.restore();
-  // Left hand / glove
-  gc.fillStyle = '#111';
-  gc.beginPath();
-  gc.arc(charX - 12*scale, charY - 49*scale, 5*scale, 0, Math.PI*2);
-  gc.fill();
-
-  // Right arm (extended, holding can)
-  gc.fillStyle = '#222';
-  gc.save();
-  gc.translate(charX + 15*scale, charY - 76*scale);
-  gc.rotate(-0.55);
-  gc.beginPath();
-  gc.roundRect(-5*scale, 0, 10*scale, 26*scale, 4*scale);
-  gc.fill();
-  gc.restore();
-  // Forearm
-  gc.save();
-  gc.translate(charX + 28*scale, charY - 60*scale);
-  gc.rotate(-0.9);
-  gc.beginPath();
-  gc.roundRect(-4*scale, 0, 9*scale, 22*scale, 3*scale);
-  gc.fill();
-  gc.restore();
-
-  // === SPRAY CAN ===
-  const canX = charX + 42*scale;
-  const canY = charY - 46*scale;
+  // === SPRAY CAN ONLY ===
+  const canX = charX;
+  const canY = charY - 50*scale;
   // Can body with metallic gradient
   const canGrad = gc.createLinearGradient(canX-6*scale, canY, canX+6*scale, canY);
   canGrad.addColorStop(0,   '#990000');
@@ -990,112 +843,14 @@ function drawCharacter() {
   }
   gc.restore();
 
-  // Right hand gripping can
-  gc.fillStyle = '#111';
-  gc.beginPath();
-  gc.arc(canX - 2*scale, canY - 16*scale, 6*scale, 0, Math.PI*2);
-  gc.fill();
-
-  // === HEAD ===
-  // Neck
-  gc.fillStyle = '#c09060';
-  gc.fillRect(charX - 4*scale, charY - 84*scale, 8*scale, 8*scale);
-
-  // Head shape (slightly oval)
-  const faceGrad = gc.createRadialGradient(charX - 3*scale, charY - 90*scale, 2*scale, charX, charY - 88*scale, 16*scale);
-  faceGrad.addColorStop(0, '#ddb888');
-  faceGrad.addColorStop(0.6, '#c8a070');
-  faceGrad.addColorStop(1, '#a07840');
-  gc.fillStyle = faceGrad;
-  gc.beginPath();
-  gc.ellipse(charX, charY - 88*scale, 14*scale, 16*scale, 0, 0, Math.PI*2);
-  gc.fill();
-
-  // === BEANIE ===
-  gc.fillStyle = '#bb1e00';
-  gc.beginPath();
-  gc.ellipse(charX, charY - 98*scale, 15*scale, 10*scale, 0, Math.PI, Math.PI*2);
-  gc.fill();
-  gc.fillRect(charX - 15*scale, charY - 98*scale, 30*scale, 10*scale);
-  // Beanie fold line
-  gc.fillStyle = '#991500';
-  gc.fillRect(charX - 15*scale, charY - 92*scale, 30*scale, 4*scale);
-  // Pompom
-  const pompGrad = gc.createRadialGradient(charX-1*scale, charY-108*scale, 0, charX, charY-107*scale, 6*scale);
-  pompGrad.addColorStop(0, '#ff6644');
-  pompGrad.addColorStop(0.6, '#cc2200');
-  pompGrad.addColorStop(1, '#991100');
-  gc.fillStyle = pompGrad;
-  gc.beginPath();
-  gc.arc(charX, charY - 107*scale, 6*scale, 0, Math.PI*2);
-  gc.fill();
-
-  // === FACE DETAILS ===
-  // Eyebrows
-  gc.strokeStyle = '#4a3020';
-  gc.lineWidth = 2*scale;
-  gc.beginPath();
-  gc.moveTo(charX - 8*scale, charY - 87*scale);
-  gc.lineTo(charX - 3*scale, charY - 89*scale);
-  gc.stroke();
-  gc.beginPath();
-  gc.moveTo(charX + 3*scale, charY - 89*scale);
-  gc.lineTo(charX + 8*scale, charY - 87*scale);
-  gc.stroke();
-
-  // Eyes — whites + iris + pupil
+  // "LOOP" label on can
+  gc.save();
   gc.fillStyle = '#fff';
-  gc.beginPath();
-  gc.ellipse(charX - 5*scale, charY - 85*scale, 3.5*scale, 2.5*scale, 0, 0, Math.PI*2);
-  gc.fill();
-  gc.beginPath();
-  gc.ellipse(charX + 5*scale, charY - 85*scale, 3.5*scale, 2.5*scale, 0, 0, Math.PI*2);
-  gc.fill();
-  gc.fillStyle = '#3a2010';
-  gc.beginPath();
-  gc.arc(charX - 4.5*scale, charY - 85*scale, 2*scale, 0, Math.PI*2);
-  gc.fill();
-  gc.beginPath();
-  gc.arc(charX + 5.5*scale, charY - 85*scale, 2*scale, 0, Math.PI*2);
-  gc.fill();
-  gc.fillStyle = '#000';
-  gc.beginPath();
-  gc.arc(charX - 4.5*scale, charY - 85*scale, 1*scale, 0, Math.PI*2);
-  gc.fill();
-  gc.beginPath();
-  gc.arc(charX + 5.5*scale, charY - 85*scale, 1*scale, 0, Math.PI*2);
-  gc.fill();
-  // Eye shine
-  gc.fillStyle = 'rgba(255,255,255,0.7)';
-  gc.beginPath();
-  gc.arc(charX - 3.8*scale, charY - 86*scale, 0.8*scale, 0, Math.PI*2);
-  gc.fill();
-  gc.beginPath();
-  gc.arc(charX + 6.2*scale, charY - 86*scale, 0.8*scale, 0, Math.PI*2);
-  gc.fill();
-
-  // Mask (balaclava-style)
-  const maskGrad = gc.createLinearGradient(charX - 10*scale, charY - 83*scale, charX + 10*scale, charY - 78*scale);
-  maskGrad.addColorStop(0, '#2a2a2a');
-  maskGrad.addColorStop(0.5, '#383838');
-  maskGrad.addColorStop(1, '#1e1e1e');
-  gc.fillStyle = maskGrad;
-  gc.beginPath();
-  gc.roundRect(charX - 10*scale, charY - 83*scale, 20*scale, 10*scale, [2*scale, 2*scale, 5*scale, 5*scale]);
-  gc.fill();
-  // Mask stitching
-  gc.strokeStyle = 'rgba(255,255,255,0.08)';
-  gc.lineWidth = 0.8*scale;
-  gc.beginPath();
-  gc.moveTo(charX - 9*scale, charY - 80*scale);
-  gc.lineTo(charX + 9*scale, charY - 80*scale);
-  gc.stroke();
-
-  // Ear
-  gc.fillStyle = '#c09060';
-  gc.beginPath();
-  gc.ellipse(charX - 14*scale, charY - 87*scale, 3*scale, 4*scale, 0.2, 0, Math.PI*2);
-  gc.fill();
+  gc.font = `bold ${Math.round(7*scale)}px Arial Black, sans-serif`;
+  gc.textAlign = 'center';
+  gc.letterSpacing = '1px';
+  gc.fillText('LOOP', canX, canY - 10*scale);
+  gc.restore();
 
   gc.restore();
 }
