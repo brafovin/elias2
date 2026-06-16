@@ -53,13 +53,13 @@
   .color-grid {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
-    gap: 5px;
+    gap: 3px;
     margin-bottom: 15px;
   }
   .color-swatch {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
     cursor: pointer;
     border: 2px solid transparent;
     transition: transform 0.1s, border-color 0.1s;
@@ -384,10 +384,10 @@ function drawBackground() {
 }
 
 function drawTrain() {
-  const trainY = H * 0.46;
-  const trainH = H * 0.37;
-  const trainX = W * 0.03;
-  const trainW = W * 0.94;
+  const trainY = H * 0.30;
+  const trainH = H * 0.55;
+  const trainX = W * 0.01;
+  const trainW = W * 0.98;
   const wagonCount = 4;
   const gap = 8;
   const wagonW = (trainW - gap*(wagonCount-1)) / wagonCount;
