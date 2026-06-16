@@ -681,41 +681,230 @@ function drawBogieSet(cx, cy, trainH) {
 }
 
 function drawLocomotive(x, y, w, h) {
-  // Cab nose / front shape
-  const bodyH = h * 0.78;
-  const noseW = 28;
+  const bodyH = h * 0.52;
+  const noseLen = w * 0.38; // how far the nose tip extends left of x
 
-  // Cab overhang
-  gc.fillStyle = '#b0b4bc';
-  gc.fillRect(x - noseW, y + bodyH*0.3, noseW, bodyH*0.5);
+  // The locomotive occupies [x, x+w] in x (same as a wagon),
+  // plus an aerodynamic nose that tapers to the left past x.
 
-  // Cab face
-  gc.strokeStyle = '#666';
-  gc.lineWidth = 2;
-  gc.strokeRect(x - noseW, y + bodyH*0.3, noseW, bodyH*0.5);
-
-  // Headlight
-  const hlY = y + bodyH*0.45;
+  // --- Drop shadow for full loco shape ---
   gc.save();
-  gc.fillStyle = '#ffe060';
-  gc.shadowColor = '#ffee88';
-  gc.shadowBlur = 15;
+  gc.shadowColor = 'rgba(0,0,0,0.65)';
+  gc.shadowBlur = 22;
+  gc.shadowOffsetY = 10;
   gc.beginPath();
-  gc.arc(x - noseW/2, hlY, 8, 0, Math.PI*2);
+  // Nose tip -> top-left corner -> top-right -> bottom-right -> bottom-left -> back
+  gc.moveTo(x - noseLen, y + bodyH * 0.50); // nose tip
+  gc.lineTo(x, y + bodyH * 0.08);           // top of nose join
+  gc.lineTo(x + w, y + bodyH * 0.08);       // top-right
+  gc.lineTo(x + w, y + bodyH - 6);          // bottom-right
+  gc.quadraticCurveTo(x + w, y + bodyH, x + w - 6, y + bodyH);
+  gc.lineTo(x, y + bodyH);                  // bottom of nose join
+  gc.closePath();
+  gc.fillStyle = '#000';
   gc.fill();
   gc.restore();
 
-  // Stripe on loco
-  gc.fillStyle = '#cc2200';
-  gc.fillRect(x, y + bodyH*0.62, w*0.6, 8);
+  // --- Main body gradient (white/silver, same as wagon) ---
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x - noseLen, y + bodyH * 0.50);
+  gc.lineTo(x, y + bodyH * 0.08);
+  gc.lineTo(x + w, y + bodyH * 0.08);
+  gc.lineTo(x + w, y + bodyH - 6);
+  gc.quadraticCurveTo(x + w, y + bodyH, x + w - 6, y + bodyH);
+  gc.lineTo(x, y + bodyH);
+  gc.closePath();
+  const bodyGrad = gc.createLinearGradient(x - noseLen, y, x - noseLen, y + bodyH);
+  bodyGrad.addColorStop(0,    '#c8ccd2'); // silver roof
+  bodyGrad.addColorStop(0.10, '#e6eaee');
+  bodyGrad.addColorStop(0.22, '#f4f6f8'); // bright
+  bodyGrad.addColorStop(0.55, '#edf0f3');
+  bodyGrad.addColorStop(0.82, '#dde0e4');
+  bodyGrad.addColorStop(1,    '#c4c8cc');
+  gc.fillStyle = bodyGrad;
+  gc.fill();
 
-  // Number plate
-  gc.fillStyle = '#222';
-  gc.fillRect(x + 15, y + bodyH*0.72, 55, 18);
-  gc.fillStyle = '#ffcc00';
-  gc.font = 'bold 12px Courier New';
+  // Horizontal sheen overlay
+  const sheenGrad = gc.createLinearGradient(x - noseLen, y, x + w, y);
+  sheenGrad.addColorStop(0,    'rgba(255,255,255,0)');
+  sheenGrad.addColorStop(0.35, 'rgba(255,255,255,0.13)');
+  sheenGrad.addColorStop(0.55, 'rgba(255,255,255,0.20)');
+  sheenGrad.addColorStop(0.75, 'rgba(255,255,255,0.08)');
+  sheenGrad.addColorStop(1,    'rgba(255,255,255,0)');
+  gc.fillStyle = sheenGrad;
+  gc.fill();
+  gc.restore();
+
+  // --- Roof metallic strip ---
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x - noseLen * 0.3, y + bodyH * 0.50);
+  gc.lineTo(x, y + bodyH * 0.08);
+  gc.lineTo(x + w, y + bodyH * 0.08);
+  gc.lineTo(x + w, y + bodyH * 0.18);
+  gc.lineTo(x, y + bodyH * 0.18);
+  gc.lineTo(x - noseLen * 0.3, y + bodyH * 0.55);
+  gc.closePath();
+  const roofGrad = gc.createLinearGradient(x, y, x + w, y);
+  roofGrad.addColorStop(0,   'rgba(170,180,194,0.75)');
+  roofGrad.addColorStop(0.5, 'rgba(230,238,248,0.60)');
+  roofGrad.addColorStop(1,   'rgba(185,194,208,0.70)');
+  gc.fillStyle = roofGrad;
+  gc.fill();
+  gc.restore();
+
+  // --- Red stripe: runs from right across body and tapers on nose ---
+  const stripeY = y + bodyH * 0.60;
+  const stripeH = 9;
+  // Stripe on rectangular body portion
+  gc.fillStyle = '#e8000f';
+  gc.fillRect(x, stripeY, w, stripeH);
+  // Stripe continues on nose (angled, tapering to tip)
+  gc.beginPath();
+  gc.moveTo(x, stripeY);
+  gc.lineTo(x - noseLen, y + bodyH * 0.50); // nose tip (stripe collapses here)
+  gc.lineTo(x - noseLen, y + bodyH * 0.50 + 1);
+  gc.lineTo(x, stripeY + stripeH);
+  gc.closePath();
+  gc.fillStyle = '#e8000f';
+  gc.fill();
+  // Stripe edges
+  gc.fillStyle = 'rgba(255,80,80,0.35)';
+  gc.fillRect(x, stripeY, w, 2);
+  gc.fillStyle = 'rgba(100,0,0,0.3)';
+  gc.fillRect(x, stripeY + stripeH - 2, w, 2);
+
+  // --- Gray underbody skirt ---
+  const skirtY = y + bodyH * 0.88;
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x, skirtY);
+  gc.lineTo(x + w, skirtY);
+  gc.lineTo(x + w, y + bodyH - 6);
+  gc.quadraticCurveTo(x + w, y + bodyH, x + w - 6, y + bodyH);
+  gc.lineTo(x, y + bodyH);
+  gc.closePath();
+  const skirtGrad = gc.createLinearGradient(x, skirtY, x, y + bodyH);
+  skirtGrad.addColorStop(0, '#5a5e64');
+  skirtGrad.addColorStop(1, '#3a3e44');
+  gc.fillStyle = skirtGrad;
+  gc.fill();
+  gc.restore();
+
+  // --- Nose dark lower section (underbody of nose) ---
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x, skirtY);
+  gc.lineTo(x - noseLen, y + bodyH * 0.50);
+  gc.lineTo(x, y + bodyH);
+  gc.closePath();
+  gc.fillStyle = '#42464c';
+  gc.fill();
+  gc.restore();
+
+  // --- Windshield (angled on nose) ---
+  const wsTop = y + bodyH * 0.10;
+  const wsBottom = y + bodyH * 0.48;
+  gc.save();
+  gc.beginPath();
+  gc.moveTo(x, wsTop);                             // top-left where nose joins
+  gc.lineTo(x + w * 0.28, wsTop);                  // top-right of windshield
+  gc.lineTo(x + w * 0.18, wsBottom);               // bottom-right
+  gc.lineTo(x - noseLen * 0.55, wsBottom);         // bottom-left (on nose)
+  gc.closePath();
+  const wsGrad = gc.createLinearGradient(x - noseLen * 0.5, wsTop, x + w * 0.2, wsBottom);
+  wsGrad.addColorStop(0,   '#0a1828');
+  wsGrad.addColorStop(0.4, '#12263e');
+  wsGrad.addColorStop(1,   '#080f1c');
+  gc.fillStyle = wsGrad;
+  gc.fill();
+  // Windshield reflection
+  gc.fillStyle = 'rgba(255,255,255,0.10)';
+  gc.beginPath();
+  gc.moveTo(x - noseLen * 0.45, wsTop + bodyH * 0.05);
+  gc.lineTo(x + w * 0.20, wsTop + bodyH * 0.05);
+  gc.lineTo(x + w * 0.14, wsTop + bodyH * 0.18);
+  gc.lineTo(x - noseLen * 0.38, wsTop + bodyH * 0.18);
+  gc.closePath();
+  gc.fill();
+  // Windshield frame
+  gc.strokeStyle = '#2a2e36';
+  gc.lineWidth = 2.5;
+  gc.beginPath();
+  gc.moveTo(x, wsTop);
+  gc.lineTo(x + w * 0.28, wsTop);
+  gc.lineTo(x + w * 0.18, wsBottom);
+  gc.lineTo(x - noseLen * 0.55, wsBottom);
+  gc.closePath();
+  gc.stroke();
+  gc.restore();
+
+  // --- Headlights on nose ---
+  const hlY1 = y + bodyH * 0.36;
+  const hlY2 = y + bodyH * 0.54;
+  [hlY1, hlY2].forEach((hlY, idx) => {
+    const hlX = x - noseLen * 0.72 + idx * 8;
+    // Housing
+    gc.fillStyle = '#444';
+    gc.beginPath();
+    gc.arc(hlX, hlY, 7, 0, Math.PI * 2);
+    gc.fill();
+    // Glow
+    gc.save();
+    gc.shadowColor = 'rgba(255,240,140,0.9)';
+    gc.shadowBlur = 18;
+    const hlGrad = gc.createRadialGradient(hlX, hlY, 0, hlX, hlY, 6);
+    hlGrad.addColorStop(0,   '#fff8e0');
+    hlGrad.addColorStop(0.5, '#ffe080');
+    hlGrad.addColorStop(1,   '#ffcc20');
+    gc.fillStyle = hlGrad;
+    gc.beginPath();
+    gc.arc(hlX, hlY, 5.5, 0, Math.PI * 2);
+    gc.fill();
+    gc.restore();
+  });
+
+  // --- Windows on locomotive body (fewer, smaller) ---
+  const locoWinCount = Math.max(1, Math.floor(w * 0.6 / 72));
+  const locoWinW = 46;
+  const locoWinH = bodyH * 0.22;
+  const locoWinY = y + bodyH * 0.22;
+  const locoWinStartX = x + w * 0.32;
+  const locoWinSpacing = (w * 0.65 - locoWinW * locoWinCount) / (locoWinCount + 1);
+  for(let wi = 0; wi < locoWinCount; wi++) {
+    const wX = locoWinStartX + locoWinSpacing + wi * (locoWinW + locoWinSpacing);
+    gc.fillStyle = '#2a2e36';
+    gc.fillRect(wX - 3, locoWinY - 3, locoWinW + 6, locoWinH + 6);
+    const glassGrad = gc.createLinearGradient(wX, locoWinY, wX, locoWinY + locoWinH);
+    glassGrad.addColorStop(0,   '#0d1e35');
+    glassGrad.addColorStop(0.5, '#142840');
+    glassGrad.addColorStop(1,   '#080f1c');
+    gc.fillStyle = glassGrad;
+    gc.fillRect(wX, locoWinY, locoWinW, locoWinH);
+    gc.fillStyle = 'rgba(255,255,255,0.12)';
+    gc.fillRect(wX + 3, locoWinY + 2, locoWinW * 0.25, locoWinH * 0.55);
+  }
+
+  // --- "ICE" text on locomotive ---
+  const iceX = x + w * 0.52;
+  const iceY = y + bodyH * 0.73;
+  gc.save();
+  gc.font = `bold ${Math.round(bodyH * 0.16)}px Arial Black, sans-serif`;
   gc.textAlign = 'center';
-  gc.fillText('5512', x + 42, y + bodyH*0.72 + 13);
+  gc.textBaseline = 'middle';
+  // Shadow
+  gc.fillStyle = 'rgba(0,0,0,0.25)';
+  gc.fillText('ICE', iceX + 2, iceY + 2);
+  // Red text
+  gc.fillStyle = '#e8000f';
+  gc.fillText('ICE', iceX, iceY);
+  gc.restore();
+
+  // --- Bogies ---
+  const bogieY = y + bodyH - 6;
+  drawBogieSet(x + w * 0.25, bogieY, h);
+  drawBogieSet(x + w * 0.75, bogieY, h);
 }
 
 function drawCharacter() {
