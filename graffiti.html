@@ -205,7 +205,7 @@ let isDrawing = false;
 let sprayX = 0, sprayY = 0;    // current (smoothed) spray position
 let targetX = 0, targetY = 0;  // where the mouse actually is
 let sprayRAF = null;
-const LERP = 0.08; // lower = slower/smoother (0.0–1.0)
+const LERP = 0.008; // lower = slower/smoother (0.0–1.0)
 let menuOpen = false;
 let selectedColor = '#ff2200';
 let trainRegion = { x: 0, y: 0, w: 0, h: 0 };
@@ -475,7 +475,7 @@ function shadeColor(hex, amt) {
 
 function drawTrain() {
   const trackY = H * 0.84;
-  const trainH = H * 0.85;
+  const trainH = H * 1.05;
   // Wheel bottom must land exactly on trackY:
   // bogieY = trainY + trainH*0.52 - 6
   // wheelBottom = bogieY + wheelR*1.4, wheelR = trainH*0.038
