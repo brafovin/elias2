@@ -204,6 +204,7 @@ let paintOpacity = 0.70;
 let isDrawing = false;
 let sprayX = 0, sprayY = 0;    // current (smoothed) spray position
 let targetX = 0, targetY = 0;  // where the mouse actually is
+let mouseX = 0, mouseY = 0;    // raw mouse position for the can
 let sprayRAF = null;
 const LERP = 0.0084; // lower = slower/smoother (0.0–1.0)
 let menuOpen = false;
@@ -1418,7 +1419,7 @@ function drawUI() {
 
   // Draw the moving spray can at current lerped position
   const scale = H / 380;
-  drawCan(sprayX, sprayY - 50*scale);
+  drawCan(mouseX, mouseY - 50*scale);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -1544,11 +1545,13 @@ function canLoop() {
 }
 
 paintCanvas.addEventListener('mousedown', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
   if(menuOpen) return;
   isDrawing = true;
   targetX = e.clientX; targetY = e.clientY;
 });
 paintCanvas.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
   if(menuOpen) return;
   targetX = e.clientX; targetY = e.clientY;
   if(tool === 'eraser') sprayPaint(e.clientX, e.clientY);
@@ -1625,6 +1628,7 @@ window.addEventListener('resize', () => {
 render();
 sprayX = W / 2; sprayY = H / 2;
 targetX = W / 2; targetY = H / 2;
+mouseX = W / 2; mouseY = H / 2;
 canLoop();
 </script>
 </body>
