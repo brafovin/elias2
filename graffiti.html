@@ -57,9 +57,9 @@
     margin-bottom: 15px;
   }
   .color-swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 3px;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
     cursor: pointer;
     border: 2px solid transparent;
     transition: transform 0.1s, border-color 0.1s;
@@ -465,10 +465,10 @@ function shadeColor(hex, amt) {
 }
 
 function drawTrain() {
-  const trainY = H * 0.30;
-  const trainH = H * 0.55;
-  const trainX = W * 0.01;
-  const trainW = W * 0.98;
+  const trainY = H * 0.18;
+  const trainH = H * 0.65;
+  const trainX = W * 0.00;
+  const trainW = W * 1.00;
   const wagonCount = 4;
   const gap = 8;
   const wagonW = (trainW - gap*(wagonCount-1)) / wagonCount;
@@ -843,13 +843,17 @@ function drawCharacter() {
   }
   gc.restore();
 
-  // "LOOP" label on can
+  // "LOOP" label — rotated 90° to fit along the can body
   gc.save();
-  gc.fillStyle = '#fff';
-  gc.font = `bold ${Math.round(7*scale)}px Arial Black, sans-serif`;
+  gc.translate(canX, canY - 10*scale);
+  gc.rotate(-Math.PI / 2);
+  gc.font = `bold ${Math.round(5.5*scale)}px Arial Black, sans-serif`;
   gc.textAlign = 'center';
-  gc.letterSpacing = '1px';
-  gc.fillText('LOOP', canX, canY - 10*scale);
+  gc.textBaseline = 'middle';
+  gc.fillStyle = '#fff';
+  gc.shadowColor = 'rgba(0,0,0,0.6)';
+  gc.shadowBlur = 2*scale;
+  gc.fillText('LOOP', 0, 0);
   gc.restore();
 
   gc.restore();
