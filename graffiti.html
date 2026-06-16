@@ -495,245 +495,187 @@ function drawTrain() {
 }
 
 function drawWagon(x, y, w, h) {
-  const bodyH = h * 0.76;
-  const radius = 10;
+  const bodyH = h * 0.52;
+  const radius = 6;
 
-  // Drop shadow
+  // --- Drop shadow ---
   gc.save();
-  gc.shadowColor = 'rgba(0,0,0,0.7)';
-  gc.shadowBlur = 18;
-  gc.shadowOffsetX = 5;
-  gc.shadowOffsetY = 8;
+  gc.shadowColor = 'rgba(0,0,0,0.6)';
+  gc.shadowBlur = 20;
+  gc.shadowOffsetY = 10;
   roundRect(gc, x, y, w, bodyH, radius);
   gc.fillStyle = '#000';
   gc.fill();
   gc.restore();
 
-  // Body — metal gradient with side sheen
+  // --- Main body: smooth white/light-gray gradient ---
   gc.save();
   roundRect(gc, x, y, w, bodyH, radius);
-  const bodyGrad = gc.createLinearGradient(x, y, x, y+bodyH);
-  bodyGrad.addColorStop(0,    '#b0b5be');
-  bodyGrad.addColorStop(0.08, '#d8dde6');
-  bodyGrad.addColorStop(0.18, '#edf0f5');
-  bodyGrad.addColorStop(0.35, '#d5d9e2');
-  bodyGrad.addColorStop(0.60, '#c8ccd5');
-  bodyGrad.addColorStop(0.85, '#b0b4bc');
-  bodyGrad.addColorStop(1,    '#888c94');
+  const bodyGrad = gc.createLinearGradient(x, y, x, y + bodyH);
+  bodyGrad.addColorStop(0,    '#d0d4d8'); // silver roof
+  bodyGrad.addColorStop(0.08, '#e8ecf0'); // upper highlight
+  bodyGrad.addColorStop(0.20, '#f4f6f8'); // bright upper body
+  bodyGrad.addColorStop(0.55, '#edf0f3'); // mid body
+  bodyGrad.addColorStop(0.80, '#dde0e4'); // lower body
+  bodyGrad.addColorStop(1,    '#c8ccd0'); // bottom
   gc.fillStyle = bodyGrad;
   gc.fill();
 
-  // Side sheen highlight
-  const sheenGrad = gc.createLinearGradient(x, y, x+w, y);
-  sheenGrad.addColorStop(0,   'rgba(255,255,255,0)');
-  sheenGrad.addColorStop(0.3, 'rgba(255,255,255,0.08)');
-  sheenGrad.addColorStop(0.5, 'rgba(255,255,255,0.14)');
-  sheenGrad.addColorStop(0.7, 'rgba(255,255,255,0.06)');
-  sheenGrad.addColorStop(1,   'rgba(255,255,255,0)');
+  // Horizontal side sheen
+  const sheenGrad = gc.createLinearGradient(x, y, x + w, y);
+  sheenGrad.addColorStop(0,    'rgba(255,255,255,0)');
+  sheenGrad.addColorStop(0.25, 'rgba(255,255,255,0.10)');
+  sheenGrad.addColorStop(0.5,  'rgba(255,255,255,0.18)');
+  sheenGrad.addColorStop(0.75, 'rgba(255,255,255,0.08)');
+  sheenGrad.addColorStop(1,    'rgba(255,255,255,0)');
   gc.fillStyle = sheenGrad;
   roundRect(gc, x, y, w, bodyH, radius);
   gc.fill();
   gc.restore();
 
-  // Top stripe — dark band
+  // --- Roof metallic sheen (top 12%) ---
   gc.save();
   gc.beginPath();
-  gc.moveTo(x+radius, y);
-  gc.lineTo(x+w-radius, y);
-  gc.quadraticCurveTo(x+w, y, x+w, y+radius);
-  gc.lineTo(x+w, y+10);
-  gc.lineTo(x, y+10);
-  gc.lineTo(x, y+radius);
-  gc.quadraticCurveTo(x, y, x+radius, y);
+  gc.moveTo(x + radius, y);
+  gc.lineTo(x + w - radius, y);
+  gc.quadraticCurveTo(x + w, y, x + w, y + radius);
+  gc.lineTo(x + w, y + bodyH * 0.12);
+  gc.lineTo(x, y + bodyH * 0.12);
+  gc.lineTo(x, y + radius);
+  gc.quadraticCurveTo(x, y, x + radius, y);
   gc.closePath();
-  gc.fillStyle = '#2a2c32';
+  const roofGrad = gc.createLinearGradient(x, y, x + w, y);
+  roofGrad.addColorStop(0,    'rgba(180,188,200,0.7)');
+  roofGrad.addColorStop(0.4,  'rgba(220,228,238,0.5)');
+  roofGrad.addColorStop(0.6,  'rgba(240,245,252,0.7)');
+  roofGrad.addColorStop(1,    'rgba(190,198,210,0.6)');
+  gc.fillStyle = roofGrad;
   gc.fill();
   gc.restore();
 
-  // Colored accent stripe
-  gc.fillStyle = '#1a3a8a';
-  gc.fillRect(x+radius, y+10, w-radius*2, 6);
+  // --- Red ICE stripe at ~60% body height ---
+  const stripeY = y + bodyH * 0.60;
+  const stripeH = 9;
+  gc.fillStyle = '#e8000f';
+  gc.fillRect(x, stripeY, w, stripeH);
+  // Stripe highlight edge
+  gc.fillStyle = 'rgba(255,80,80,0.35)';
+  gc.fillRect(x, stripeY, w, 2);
+  gc.fillStyle = 'rgba(100,0,0,0.3)';
+  gc.fillRect(x, stripeY + stripeH - 2, w, 2);
 
-  // Panel lines (horizontal riveted seams)
-  gc.strokeStyle = 'rgba(80,85,95,0.5)';
-  gc.lineWidth = 1.2;
-  [0.38, 0.62].forEach(pct => {
-    gc.beginPath();
-    gc.moveTo(x+radius, y + bodyH*pct);
-    gc.lineTo(x+w-radius, y + bodyH*pct);
-    gc.stroke();
-  });
-
-  // Vertical panel dividers
-  gc.strokeStyle = 'rgba(80,85,95,0.25)';
-  gc.lineWidth = 1;
-  const panelDivs = Math.floor(w / 60);
-  for(let pi = 1; pi < panelDivs; pi++) {
-    const px = x + (w / panelDivs) * pi;
-    gc.beginPath();
-    gc.moveTo(px, y+16);
-    gc.lineTo(px, y+bodyH-8);
-    gc.stroke();
-  }
-
-  // Rivets along top seam
-  gc.fillStyle = 'rgba(60,65,75,0.8)';
-  for(let rx = x+20; rx < x+w-10; rx += 22) {
-    gc.beginPath();
-    gc.arc(rx, y+8, 2, 0, Math.PI*2);
-    gc.fill();
-  }
-
-  // Windows
-  const winCount = Math.floor(w / 85);
-  const winW = 58;
-  const winH = h * 0.20;
-  const winY = y + h*0.10;
-  const winSpacing = (w - radius*2 - winW*winCount) / (winCount+1);
+  // --- Windows: single row, thin rectangular, above red stripe ---
+  const winCount = Math.max(2, Math.floor(w / 78));
+  const winW = Math.min(52, (w - 20) / winCount - 10);
+  const winH = bodyH * 0.22;
+  const winY = y + bodyH * 0.22;
+  const totalWinW = winCount * winW;
+  const winSpacing = (w - totalWinW) / (winCount + 1);
   for(let wi = 0; wi < winCount; wi++) {
-    const wX = x + radius + winSpacing + wi*(winW + winSpacing);
-    // Outer frame
-    gc.fillStyle = '#1a1c22';
-    roundRect(gc, wX-4, winY-4, winW+8, winH+8, 3);
-    gc.fill();
-    // Inner frame
-    gc.fillStyle = '#2a2c32';
-    roundRect(gc, wX-2, winY-2, winW+4, winH+4, 2);
-    gc.fill();
-    // Glass
-    const glassGrad = gc.createLinearGradient(wX, winY, wX, winY+winH);
-    glassGrad.addColorStop(0,   '#0e1a28');
-    glassGrad.addColorStop(0.3, '#162540');
-    glassGrad.addColorStop(0.7, '#0e1c32');
-    glassGrad.addColorStop(1,   '#080e18');
+    const wX = x + winSpacing + wi * (winW + winSpacing);
+    // Rubber/dark frame
+    gc.fillStyle = '#2a2e36';
+    gc.fillRect(wX - 3, winY - 3, winW + 6, winH + 6);
+    // Dark blue glass
+    const glassGrad = gc.createLinearGradient(wX, winY, wX, winY + winH);
+    glassGrad.addColorStop(0,   '#0d1e35');
+    glassGrad.addColorStop(0.3, '#142840');
+    glassGrad.addColorStop(0.7, '#0e1f38');
+    glassGrad.addColorStop(1,   '#080f1c');
     gc.fillStyle = glassGrad;
-    roundRect(gc, wX, winY, winW, winH, 1);
-    gc.fill();
-    // Interior glow (faint orange light from inside)
-    gc.fillStyle = 'rgba(255,160,60,0.06)';
-    gc.fillRect(wX+2, winY+winH*0.4, winW-4, winH*0.5);
-    // Reflections
-    gc.fillStyle = 'rgba(255,255,255,0.10)';
-    gc.fillRect(wX+4, winY+3, winW*0.25, winH*0.35);
-    gc.fillStyle = 'rgba(255,255,255,0.05)';
-    gc.fillRect(wX+winW*0.6, winY+3, winW*0.15, winH*0.5);
-    // Rubber seal
-    gc.strokeStyle = 'rgba(30,30,30,0.6)';
-    gc.lineWidth = 1.5;
-    gc.strokeRect(wX, winY, winW, winH);
+    gc.fillRect(wX, winY, winW, winH);
+    // Interior warm glow
+    gc.fillStyle = 'rgba(255,220,150,0.05)';
+    gc.fillRect(wX + 2, winY + winH * 0.45, winW - 4, winH * 0.5);
+    // Window reflection
+    gc.fillStyle = 'rgba(255,255,255,0.12)';
+    gc.fillRect(wX + 3, winY + 2, winW * 0.22, winH * 0.6);
+    gc.fillStyle = 'rgba(255,255,255,0.06)';
+    gc.fillRect(wX + winW * 0.65, winY + 2, winW * 0.18, winH * 0.4);
   }
 
-  // Door
-  const doorW = 36;
-  const doorH = bodyH * 0.52;
-  const doorX = x + w/2 - doorW/2;
-  const doorY = y + bodyH - doorH - 4;
-  // Door recess
-  gc.fillStyle = '#6a6e76';
-  roundRect(gc, doorX-2, doorY-2, doorW+4, doorH+4, 3);
-  gc.fill();
-  // Door panel
-  const doorGrad = gc.createLinearGradient(doorX, doorY, doorX+doorW, doorY);
-  doorGrad.addColorStop(0, '#7a7e88');
-  doorGrad.addColorStop(0.5, '#909498');
-  doorGrad.addColorStop(1, '#6a6e76');
-  gc.fillStyle = doorGrad;
-  gc.fillRect(doorX, doorY, doorW, doorH);
-  // Door gap line (center split for double door)
-  gc.strokeStyle = '#555';
-  gc.lineWidth = 1.5;
-  gc.beginPath();
-  gc.moveTo(doorX + doorW/2, doorY);
-  gc.lineTo(doorX + doorW/2, doorY + doorH);
-  gc.stroke();
-  // Door handle
-  gc.fillStyle = '#ccc';
-  gc.beginPath();
-  gc.roundRect(doorX + doorW*0.72, doorY + doorH*0.45, 5, 14, 2);
-  gc.fill();
-  gc.fillStyle = '#888';
-  gc.beginPath();
-  gc.roundRect(doorX + doorW*0.28 - 5, doorY + doorH*0.45, 5, 14, 2);
-  gc.fill();
-
-  // Rust / weathering streaks
+  // --- Gray underbody skirt ---
+  const skirtY = y + bodyH * 0.88;
+  const skirtH = bodyH * 0.12;
   gc.save();
-  gc.globalAlpha = 0.08;
-  [[x+w*0.15, y+bodyH*0.25],[x+w*0.45, y+bodyH*0.18],[x+w*0.75, y+bodyH*0.30]].forEach(([sx,sy]) => {
-    const rustGrad = gc.createLinearGradient(sx, sy, sx+3, sy+bodyH*0.35);
-    rustGrad.addColorStop(0, '#8B4513');
-    rustGrad.addColorStop(1, 'transparent');
-    gc.fillStyle = rustGrad;
-    gc.fillRect(sx, sy, 3, bodyH*0.35);
-  });
+  gc.beginPath();
+  gc.moveTo(x, skirtY);
+  gc.lineTo(x + w, skirtY);
+  gc.lineTo(x + w, y + bodyH - radius);
+  gc.quadraticCurveTo(x + w, y + bodyH, x + w - radius, y + bodyH);
+  gc.lineTo(x + radius, y + bodyH);
+  gc.quadraticCurveTo(x, y + bodyH, x, y + bodyH - radius);
+  gc.closePath();
+  const skirtGrad = gc.createLinearGradient(x, skirtY, x, y + bodyH);
+  skirtGrad.addColorStop(0, '#5a5e64');
+  skirtGrad.addColorStop(1, '#3a3e44');
+  gc.fillStyle = skirtGrad;
+  gc.fill();
   gc.restore();
 
-  // Undercarriage frame
-  gc.fillStyle = '#111';
-  gc.fillRect(x+2, y+bodyH, w-4, h*0.09);
-  // Underbody detail
-  gc.fillStyle = '#222';
-  gc.fillRect(x+10, y+bodyH+2, w-20, h*0.04);
+  // --- Coupling connector on right side ---
+  const couplerY = y + bodyH * 0.75;
+  gc.fillStyle = '#555';
+  gc.fillRect(x + w - 2, couplerY, 6, 8);
+  gc.fillStyle = '#333';
+  gc.fillRect(x + w + 2, couplerY + 2, 4, 4);
 
-  // Bogie sets
-  drawBogieSet(x + w*0.18, y + bodyH + h*0.04, h);
-  drawBogieSet(x + w*0.72, y + bodyH + h*0.04, h);
+  // --- Bogies (partially tucked under skirt) ---
+  const bogieY = y + bodyH - 6;
+  drawBogieSet(x + w * 0.22, bogieY, h);
+  drawBogieSet(x + w * 0.72, bogieY, h);
 }
 
 function drawBogieSet(cx, cy, trainH) {
-  const axleW = 60;
-  const wheelR = trainH * 0.08;
+  const wheelR = Math.max(10, trainH * 0.038);
+  const axleSpan = wheelR * 3.2;
 
-  // Axle bar
-  gc.fillStyle = '#333';
-  gc.fillRect(cx - axleW/2, cy, axleW, 5);
+  // Bogie frame (dark gray box partially hidden above)
+  gc.fillStyle = '#2a2c30';
+  gc.fillRect(cx - axleSpan * 0.7, cy - wheelR * 0.6, axleSpan * 1.4, wheelR * 0.8);
 
-  // Wheels
-  [-axleW/2 + wheelR, axleW/2 - wheelR].forEach(dx => {
+  // Two wheels per bogie set
+  [-axleSpan * 0.38, axleSpan * 0.38].forEach(dx => {
     const wx = cx + dx;
-    const wy = cy + wheelR + 2;
+    const wy = cy + wheelR * 0.4;
 
-    // Wheel shadow
-    gc.fillStyle = 'rgba(0,0,0,0.4)';
+    // Shadow
+    gc.fillStyle = 'rgba(0,0,0,0.35)';
     gc.beginPath();
-    gc.arc(wx+2, wy+2, wheelR, 0, Math.PI*2);
+    gc.arc(wx + 2, wy + 2, wheelR, 0, Math.PI * 2);
     gc.fill();
 
-    // Wheel rim
-    const rimGrad = gc.createRadialGradient(wx-wheelR*0.3, wy-wheelR*0.3, 1, wx, wy, wheelR);
-    rimGrad.addColorStop(0, '#888');
-    rimGrad.addColorStop(0.6, '#444');
-    rimGrad.addColorStop(1, '#222');
+    // Wheel body — dark steel
+    const rimGrad = gc.createRadialGradient(wx - wheelR * 0.3, wy - wheelR * 0.3, 1, wx, wy, wheelR);
+    rimGrad.addColorStop(0,   '#707070');
+    rimGrad.addColorStop(0.5, '#404040');
+    rimGrad.addColorStop(1,   '#1a1a1a');
     gc.fillStyle = rimGrad;
     gc.beginPath();
-    gc.arc(wx, wy, wheelR, 0, Math.PI*2);
+    gc.arc(wx, wy, wheelR, 0, Math.PI * 2);
     gc.fill();
 
-    // Hub
-    gc.fillStyle = '#666';
+    // Wheel tread ring (lighter outer rim)
+    gc.strokeStyle = '#585858';
+    gc.lineWidth = wheelR * 0.12;
     gc.beginPath();
-    gc.arc(wx, wy, wheelR*0.35, 0, Math.PI*2);
-    gc.fill();
-    gc.fillStyle = '#999';
-    gc.beginPath();
-    gc.arc(wx, wy, wheelR*0.15, 0, Math.PI*2);
-    gc.fill();
+    gc.arc(wx, wy, wheelR * 0.88, 0, Math.PI * 2);
+    gc.stroke();
 
-    // Spokes
-    gc.strokeStyle = '#555';
-    gc.lineWidth = 2;
-    for(let s = 0; s < 6; s++) {
-      const angle = (s / 6) * Math.PI * 2;
-      gc.beginPath();
-      gc.moveTo(wx + Math.cos(angle)*wheelR*0.15, wy + Math.sin(angle)*wheelR*0.15);
-      gc.lineTo(wx + Math.cos(angle)*wheelR*0.85, wy + Math.sin(angle)*wheelR*0.85);
-      gc.stroke();
-    }
-
-    // Rail flange
+    // Hub disc
     gc.fillStyle = '#555';
     gc.beginPath();
-    gc.arc(wx, wy, wheelR*1.1, Math.PI*0.3, Math.PI*0.7);
+    gc.arc(wx, wy, wheelR * 0.32, 0, Math.PI * 2);
+    gc.fill();
+    gc.fillStyle = '#888';
+    gc.beginPath();
+    gc.arc(wx, wy, wheelR * 0.12, 0, Math.PI * 2);
+    gc.fill();
+
+    // Rail flange (bottom arc, touches rail)
+    gc.fillStyle = '#3a3a3a';
+    gc.beginPath();
+    gc.arc(wx, wy, wheelR * 1.08, Math.PI * 0.25, Math.PI * 0.75);
     gc.fill();
   });
 }
