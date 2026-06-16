@@ -474,8 +474,13 @@ function shadeColor(hex, amt) {
 }
 
 function drawTrain() {
-  const trainY = H * 0.18;
-  const trainH = H * 0.65;
+  const trackY = H * 0.84;
+  const trainH = H * 0.72;
+  // Wheel bottom must land exactly on trackY:
+  // bogieY = trainY + trainH*0.52 - 6
+  // wheelBottom = bogieY + wheelR*1.4, wheelR = trainH*0.038
+  // => trainY = trackY - trainH*(0.52 + 0.038*1.4) + 6
+  const trainY = trackY - trainH * 0.5732 + 6;
   const trainX = W * 0.00;
   const trainW = W * 1.00;
   const wagonCount = 6;
