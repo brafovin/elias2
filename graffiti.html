@@ -14,12 +14,12 @@
   }
   #gameCanvas {
     display: block;
-    cursor: none;
+    cursor: crosshair;
   }
   #paintCanvas {
     position: absolute;
     top: 0; left: 0;
-    cursor: none;
+    cursor: crosshair;
     pointer-events: none;
   }
   #uiCanvas {
@@ -210,6 +210,71 @@ const LERP = 0.0084; // lower = slower/smoother (0.0–1.0)
 let menuOpen = false;
 let selectedColor = '#ff2200';
 let trainRegion = { x: 0, y: 0, w: 0, h: 0 };
+
+// Game mechanics state
+let timeLeft = 60;
+let gamePhase = 'spray'; // 'spray', 'alarm', 'escaped', 'caught'
+let timerInterval = null;
+let sirenToggle = false;
+let sirenInterval = null;
+let policeCar = { x: 0, targetX: 0, active: false };
+let escapeCar = { x: 50, y: 0, active: false };
+let escapeBlinkOn = true;
+let escapeBlinkInterval = null;
+let resultFlash = false;
+let resultFlashInterval = null;
+
+function startTimer() {
+  if(timerInterval) return;
+  timerInterval = setInterval(() => {
+    if(gamePhase !== 'spray') return;
+    timeLeft--;
+    if(timeLeft <= 0) {
+      timeLeft = 0;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      triggerAlarm();
+    }
+  }, 1000);
+}
+
+function triggerAlarm() {
+  gamePhase = 'alarm';
+  policeCar.x = W + 200;
+  policeCar.targetX = Math.round(W * 0.55);
+  policeCar.active = true;
+  escapeCar.active = true;
+  escapeCar.x = 50;
+  escapeCar.y = H * 0.84 - 40;
+  sirenToggle = false;
+  sirenInterval = setInterval(() => { sirenToggle = !sirenToggle; }, 300);
+  escapeBlinkInterval = setInterval(() => { escapeBlinkOn = !escapeBlinkOn; }, 500);
+}
+
+function triggerEscape() {
+  if(gamePhase !== 'alarm') return;
+  gamePhase = 'escaped';
+  clearInterval(sirenInterval);
+  clearInterval(escapeBlinkInterval);
+  let flash = true;
+  resultFlashInterval = setInterval(() => { resultFlash = flash; flash = !flash; }, 400);
+  setTimeout(() => {
+    clearInterval(resultFlashInterval);
+    resultFlash = true;
+  }, 5000);
+}
+
+function checkEscapeClick(ex, ey) {
+  if(gamePhase !== 'alarm') return false;
+  const carW = 90, carH = 40;
+  const cx = escapeCar.x;
+  const cy = escapeCar.y;
+  if(ex >= cx - 10 && ex <= cx + carW + 10 && ey >= cy - 20 && ey <= cy + carH + 10) {
+    triggerEscape();
+    return true;
+  }
+  return false;
+}
 
 // Color palette
 const colors = [
@@ -1379,6 +1444,177 @@ function drawCan(cx, cy) {
   uc.restore();
 }
 
+function drawPoliceCar(x, y) {
+  // x is the left edge, y is the top of the car body
+  const cw = 130, ch = 42;
+  uc.save();
+
+  // Shadow
+  uc.fillStyle = 'rgba(0,0,0,0.35)';
+  uc.beginPath();
+  uc.ellipse(x + cw * 0.5, y + ch + 14, cw * 0.45, 7, 0, 0, Math.PI * 2);
+  uc.fill();
+
+  // Body — blue/white
+  // White lower half
+  uc.fillStyle = '#ddeeff';
+  uc.beginPath();
+  uc.roundRect(x, y + ch * 0.45, cw, ch * 0.55, [0, 0, 6, 6]);
+  uc.fill();
+
+  // Blue upper body
+  uc.fillStyle = '#1133aa';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.12, y + ch * 0.08, cw * 0.76, ch * 0.45, [6, 6, 0, 0]);
+  uc.fill();
+
+  // Blue cab / windshield area
+  uc.fillStyle = '#0d2288';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.14, y + ch * 0.05, cw * 0.72, ch * 0.42, 5);
+  uc.fill();
+
+  // Windshield
+  uc.fillStyle = '#8ab8e8';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.16, y + ch * 0.08, cw * 0.28, ch * 0.30, 3);
+  uc.fill();
+  uc.fillStyle = 'rgba(255,255,255,0.25)';
+  uc.fillRect(x + cw * 0.17, y + ch * 0.09, cw * 0.08, ch * 0.12);
+
+  // Rear window
+  uc.fillStyle = '#8ab8e8';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.60, y + ch * 0.09, cw * 0.24, ch * 0.28, 3);
+  uc.fill();
+
+  // White diagonal stripe
+  uc.save();
+  uc.beginPath();
+  uc.moveTo(x + cw * 0.12, y + ch * 0.45);
+  uc.lineTo(x + cw * 0.88, y + ch * 0.45);
+  uc.lineTo(x + cw * 0.82, y + ch * 0.55);
+  uc.lineTo(x + cw * 0.06, y + ch * 0.55);
+  uc.closePath();
+  uc.fillStyle = 'rgba(255,255,255,0.85)';
+  uc.fill();
+  uc.restore();
+
+  // "POLIZEI" text
+  uc.font = `bold ${Math.round(ch * 0.22)}px Arial Black, sans-serif`;
+  uc.textAlign = 'center';
+  uc.textBaseline = 'middle';
+  uc.fillStyle = '#0033aa';
+  uc.fillText('POLIZEI', x + cw * 0.5, y + ch * 0.72);
+
+  // Roof lights bar
+  uc.fillStyle = '#111';
+  uc.fillRect(x + cw * 0.32, y - ch * 0.06, cw * 0.36, ch * 0.16);
+  // Flashing lights (red/blue alternating)
+  const leftLightColor  = sirenToggle ? '#ff2222' : '#2244ff';
+  const rightLightColor = sirenToggle ? '#2244ff' : '#ff2222';
+  uc.save();
+  uc.shadowBlur = 14;
+  uc.shadowColor = leftLightColor;
+  uc.fillStyle = leftLightColor;
+  uc.beginPath();
+  uc.arc(x + cw * 0.38, y - ch * 0.01, ch * 0.09, 0, Math.PI * 2);
+  uc.fill();
+  uc.shadowColor = rightLightColor;
+  uc.fillStyle = rightLightColor;
+  uc.beginPath();
+  uc.arc(x + cw * 0.62, y - ch * 0.01, ch * 0.09, 0, Math.PI * 2);
+  uc.fill();
+  uc.restore();
+
+  // Wheels
+  [x + cw * 0.20, x + cw * 0.76].forEach(wx => {
+    const wy = y + ch;
+    const wr = 12;
+    uc.fillStyle = '#111';
+    uc.beginPath();
+    uc.arc(wx, wy, wr, 0, Math.PI * 2);
+    uc.fill();
+    uc.fillStyle = '#555';
+    uc.beginPath();
+    uc.arc(wx, wy, wr * 0.55, 0, Math.PI * 2);
+    uc.fill();
+    uc.fillStyle = '#888';
+    uc.beginPath();
+    uc.arc(wx, wy, wr * 0.22, 0, Math.PI * 2);
+    uc.fill();
+  });
+
+  uc.restore();
+}
+
+function drawEscapeCar(x, y) {
+  // x = left edge, y = top of car body
+  const cw = 90, ch = 35;
+  uc.save();
+
+  // Shadow
+  uc.fillStyle = 'rgba(0,0,0,0.35)';
+  uc.beginPath();
+  uc.ellipse(x + cw * 0.5, y + ch + 10, cw * 0.4, 6, 0, 0, Math.PI * 2);
+  uc.fill();
+
+  // Body — dark gunmetal
+  uc.fillStyle = '#2a2a2a';
+  uc.beginPath();
+  uc.roundRect(x, y + ch * 0.35, cw, ch * 0.65, [0, 0, 5, 5]);
+  uc.fill();
+
+  // Sleek low cab
+  uc.fillStyle = '#1e1e1e';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.15, y, cw * 0.70, ch * 0.45, [5, 5, 0, 0]);
+  uc.fill();
+
+  // Windshield tint
+  uc.fillStyle = '#334455';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.17, y + ch * 0.03, cw * 0.28, ch * 0.30, 3);
+  uc.fill();
+  uc.fillStyle = 'rgba(255,255,255,0.12)';
+  uc.fillRect(x + cw * 0.18, y + ch * 0.04, cw * 0.09, ch * 0.10);
+
+  // Rear window
+  uc.fillStyle = '#334455';
+  uc.beginPath();
+  uc.roundRect(x + cw * 0.55, y + ch * 0.04, cw * 0.24, ch * 0.28, 3);
+  uc.fill();
+
+  // Wheels
+  [x + cw * 0.20, x + cw * 0.78].forEach(wx => {
+    const wy = y + ch;
+    const wr = 10;
+    uc.fillStyle = '#111';
+    uc.beginPath();
+    uc.arc(wx, wy, wr, 0, Math.PI * 2);
+    uc.fill();
+    uc.fillStyle = '#444';
+    uc.beginPath();
+    uc.arc(wx, wy, wr * 0.5, 0, Math.PI * 2);
+    uc.fill();
+  });
+
+  // "EINSTEIGEN!" blinking prompt above car
+  if(escapeBlinkOn) {
+    uc.save();
+    uc.font = `bold ${Math.round(cw * 0.175)}px "Courier New", monospace`;
+    uc.textAlign = 'center';
+    uc.textBaseline = 'bottom';
+    uc.shadowColor = 'rgba(255,220,0,0.9)';
+    uc.shadowBlur = 12;
+    uc.fillStyle = '#ffdd00';
+    uc.fillText('EINSTEIGEN!', x + cw * 0.5, y - 8);
+    uc.restore();
+  }
+
+  uc.restore();
+}
+
 function drawUI() {
   uc.clearRect(0, 0, W, H);
 
@@ -1417,11 +1653,113 @@ function drawUI() {
   uc.arc(W - 130, H - barH/2, brushSize/2 * 0.5 + 3, 0, Math.PI*2);
   uc.stroke();
 
-  // Draw the moving spray can at current lerped position
-  const scale = H / 380;
-  // Position can so nozzle tip sits exactly on cursor
-  const _s = H / 380;
-  drawCan(mouseX - 12*_s, mouseY + 27*_s);
+  // --- Timer display (top center) ---
+  if(gamePhase === 'spray' || gamePhase === 'alarm') {
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    let timerColor = '#ff4444';
+    if(timeLeft > 10) timerColor = '#ff4444';
+    if(timeLeft <= 10 && timeLeft > 5) timerColor = '#ff8800';
+    if(timeLeft <= 5) {
+      // Flashing red
+      timerColor = (Math.floor(Date.now() / 250) % 2 === 0) ? '#ff0000' : '#880000';
+    }
+    uc.save();
+    uc.font = 'bold 52px "Courier New", monospace';
+    uc.textAlign = 'center';
+    uc.textBaseline = 'top';
+    uc.shadowColor = 'rgba(255,0,0,0.7)';
+    uc.shadowBlur = 18;
+    uc.fillStyle = timerColor;
+    uc.fillText(timeStr, W / 2, 18);
+    uc.restore();
+  }
+
+  // --- ALARM phase overlays ---
+  if(gamePhase === 'alarm' || gamePhase === 'escaped') {
+
+    // Siren color overlay
+    if(gamePhase === 'alarm') {
+      uc.save();
+      uc.fillStyle = sirenToggle
+        ? 'rgba(255, 0, 0, 0.13)'
+        : 'rgba(0, 80, 255, 0.13)';
+      uc.fillRect(0, 0, W, H);
+      uc.restore();
+    }
+
+    // "BULLEN KOMMEN!" flashing text
+    if(gamePhase === 'alarm') {
+      const flashOn = (Math.floor(Date.now() / 350) % 2 === 0);
+      if(flashOn) {
+        uc.save();
+        uc.font = `bold ${Math.round(W * 0.07)}px "Courier New", monospace`;
+        uc.textAlign = 'center';
+        uc.textBaseline = 'middle';
+        uc.shadowColor = 'rgba(255,0,0,0.9)';
+        uc.shadowBlur = 28;
+        uc.fillStyle = '#ff1111';
+        uc.fillText('BULLEN KOMMEN!', W / 2, H * 0.18);
+        uc.restore();
+      }
+    }
+
+    // Animate police car
+    if(gamePhase === 'alarm' && policeCar.active) {
+      if(policeCar.x > policeCar.targetX) {
+        policeCar.x -= 3;
+        if(policeCar.x < policeCar.targetX) policeCar.x = policeCar.targetX;
+      }
+      drawPoliceCar(policeCar.x, H * 0.84 - 38);
+    }
+
+    // Draw escape car
+    if(escapeCar.active && gamePhase === 'alarm') {
+      drawEscapeCar(escapeCar.x, escapeCar.y);
+    }
+  }
+
+  // --- ESCAPED phase ---
+  if(gamePhase === 'escaped') {
+    // Escape car drives off left
+    escapeCar.x -= 8;
+
+    // "ENTKOMMEN!" flash
+    const flashOn2 = (Math.floor(Date.now() / 400) % 2 === 0);
+    if(flashOn2 || resultFlash) {
+      uc.save();
+      uc.font = `bold ${Math.round(W * 0.065)}px "Courier New", monospace`;
+      uc.textAlign = 'center';
+      uc.textBaseline = 'middle';
+      uc.shadowColor = 'rgba(0,255,100,0.9)';
+      uc.shadowBlur = 30;
+      uc.fillStyle = '#00ff66';
+      uc.fillText('ENTKOMMEN!', W / 2, H * 0.3);
+      uc.restore();
+    }
+
+    // Result screen
+    uc.save();
+    uc.fillStyle = 'rgba(0,0,0,0.7)';
+    uc.fillRect(W * 0.2, H * 0.38, W * 0.6, H * 0.25);
+    uc.strokeStyle = '#00ff66';
+    uc.lineWidth = 2;
+    uc.strokeRect(W * 0.2, H * 0.38, W * 0.6, H * 0.25);
+    uc.font = `bold ${Math.round(W * 0.028)}px "Courier New", monospace`;
+    uc.textAlign = 'center';
+    uc.textBaseline = 'middle';
+    uc.fillStyle = '#00ff66';
+    uc.fillText('Du hast entkommen!', W / 2, H * 0.46);
+    uc.fillStyle = '#aaffcc';
+    uc.font = `${Math.round(W * 0.018)}px "Courier New", monospace`;
+    uc.fillText('Dein Graffiti bleibt!', W / 2, H * 0.54);
+    uc.restore();
+
+    if(escapeCar.x > -200) {
+      drawEscapeCar(escapeCar.x, escapeCar.y);
+    }
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -1549,6 +1887,8 @@ function canLoop() {
 paintCanvas.addEventListener('mousedown', e => {
   mouseX = e.clientX; mouseY = e.clientY;
   if(menuOpen) return;
+  // Check escape car click first
+  if(checkEscapeClick(e.clientX, e.clientY)) return;
   isDrawing = true;
   targetX = e.clientX; targetY = e.clientY;
 });
@@ -1587,12 +1927,12 @@ document.addEventListener('keydown', e => {
   }
   if(e.key === 'e' || e.key === 'E') {
     setTool('eraser');
-    paintCanvas.style.cursor = 'none';
+    paintCanvas.style.cursor = 'crosshair';
     drawUI();
   }
   if(e.key === 'q' || e.key === 'Q') {
     setTool('spray');
-    paintCanvas.style.cursor = 'none';
+    paintCanvas.style.cursor = 'crosshair';
     drawUI();
   }
   if(e.key === 'm' || e.key === 'M') {
@@ -1631,7 +1971,9 @@ render();
 sprayX = W / 2; sprayY = H / 2;
 targetX = W / 2; targetY = H / 2;
 mouseX = W / 2; mouseY = H / 2;
+escapeCar.y = H * 0.84 - 40;
 canLoop();
+startTimer();
 </script>
 </body>
 </html>
