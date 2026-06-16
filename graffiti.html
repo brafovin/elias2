@@ -1293,8 +1293,7 @@ function drawCharacter() {
   const scale = H / 380;
 
   gc.save();
-
-  // Ground shadow
+  // Ground shadow under can position
   const shadowGrad = gc.createRadialGradient(charX, charY, 0, charX, charY, 18*scale);
   shadowGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
   shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1302,81 +1301,81 @@ function drawCharacter() {
   gc.beginPath();
   gc.ellipse(charX, charY, 18*scale, 5*scale, 0, 0, Math.PI*2);
   gc.fill();
+  gc.restore();
+}
 
-  // === SPRAY CAN ONLY ===
-  const canX = charX;
-  const canY = charY - 50*scale;
-  // Can body with metallic gradient
-  const canGrad = gc.createLinearGradient(canX-6*scale, canY, canX+6*scale, canY);
-  canGrad.addColorStop(0,   '#990000');
-  canGrad.addColorStop(0.3, '#dd2200');
-  canGrad.addColorStop(0.55,'#ff4400');
-  canGrad.addColorStop(0.75,'#cc2200');
-  canGrad.addColorStop(1,   '#880000');
-  gc.fillStyle = canGrad;
-  gc.beginPath();
-  gc.roundRect(canX - 6*scale, canY - 24*scale, 12*scale, 28*scale, 4*scale);
-  gc.fill();
-  // Can label band
-  gc.fillStyle = 'rgba(255,255,255,0.12)';
-  gc.fillRect(canX - 6*scale, canY - 14*scale, 12*scale, 6*scale);
-  // Can cap
-  const capGrad = gc.createLinearGradient(canX-5*scale, canY-28*scale, canX+5*scale, canY-28*scale);
+function drawCan(cx, cy) {
+  const scale = H / 380;
+  const canX = cx;
+  const canY = cy;
+
+  uc.save();
+
+  // Can body
+  const canGrad = uc.createLinearGradient(canX-6*scale, canY, canX+6*scale, canY);
+  canGrad.addColorStop(0,    '#990000');
+  canGrad.addColorStop(0.3,  '#dd2200');
+  canGrad.addColorStop(0.55, '#ff4400');
+  canGrad.addColorStop(0.75, '#cc2200');
+  canGrad.addColorStop(1,    '#880000');
+  uc.fillStyle = canGrad;
+  uc.beginPath();
+  uc.roundRect(canX - 6*scale, canY - 24*scale, 12*scale, 28*scale, 4*scale);
+  uc.fill();
+
+  // Label band
+  uc.fillStyle = 'rgba(255,255,255,0.12)';
+  uc.fillRect(canX - 6*scale, canY - 14*scale, 12*scale, 6*scale);
+
+  // Cap
+  const capGrad = uc.createLinearGradient(canX-5*scale, canY-28*scale, canX+5*scale, canY-28*scale);
   capGrad.addColorStop(0, '#ccc');
   capGrad.addColorStop(0.5, '#fff');
   capGrad.addColorStop(1, '#aaa');
-  gc.fillStyle = capGrad;
-  gc.beginPath();
-  gc.roundRect(canX - 5*scale, canY - 30*scale, 10*scale, 7*scale, 3*scale);
-  gc.fill();
-  // Nozzle tip
-  gc.fillStyle = '#ccc';
-  gc.fillRect(canX + 5*scale, canY - 28*scale, 7*scale, 3*scale);
-  gc.fillStyle = '#fff';
-  gc.beginPath();
-  gc.arc(canX + 12*scale, canY - 27*scale, 2*scale, 0, Math.PI*2);
-  gc.fill();
+  uc.fillStyle = capGrad;
+  uc.beginPath();
+  uc.roundRect(canX - 5*scale, canY - 30*scale, 10*scale, 7*scale, 3*scale);
+  uc.fill();
 
-  // Spray burst from nozzle
-  gc.save();
-  for(let si = 0; si < 3; si++) {
-    const bx = canX + (14 + si*6)*scale;
-    const by = canY - 27*scale;
-    const br = (10 + si*5)*scale;
-    const sprayGrad = gc.createRadialGradient(bx, by, 0, bx, by, br);
-    sprayGrad.addColorStop(0, `rgba(255,80,20,${0.35 - si*0.08})`);
-    sprayGrad.addColorStop(0.5, `rgba(255,120,40,${0.15 - si*0.04})`);
-    sprayGrad.addColorStop(1, 'rgba(255,160,60,0)');
-    gc.fillStyle = sprayGrad;
-    gc.beginPath();
-    gc.ellipse(bx, by, br, br*0.7, -0.1, 0, Math.PI*2);
-    gc.fill();
+  // Nozzle
+  uc.fillStyle = '#ccc';
+  uc.fillRect(canX + 5*scale, canY - 28*scale, 7*scale, 3*scale);
+  uc.fillStyle = '#fff';
+  uc.beginPath();
+  uc.arc(canX + 12*scale, canY - 27*scale, 2*scale, 0, Math.PI*2);
+  uc.fill();
+
+  // Spray burst (only when drawing and spray tool)
+  if(isDrawing && tool === 'spray') {
+    for(let si = 0; si < 3; si++) {
+      const bx = canX + (14 + si*6)*scale;
+      const by = canY - 27*scale;
+      const br = (10 + si*5)*scale;
+      const sg = uc.createRadialGradient(bx, by, 0, bx, by, br);
+      sg.addColorStop(0, `rgba(255,80,20,${0.35 - si*0.08})`);
+      sg.addColorStop(0.5, `rgba(255,120,40,${0.15 - si*0.04})`);
+      sg.addColorStop(1, 'rgba(255,160,60,0)');
+      uc.fillStyle = sg;
+      uc.beginPath();
+      uc.ellipse(bx, by, br, br*0.7, -0.1, 0, Math.PI*2);
+      uc.fill();
+    }
   }
-  // Fine mist particles
-  for(let p = 0; p < 12; p++) {
-    const ang = (Math.random() - 0.5) * 0.8 - 0.1;
-    const dist = (10 + Math.random() * 22) * scale;
-    gc.fillStyle = `rgba(255,${80+Math.random()*80},20,${Math.random()*0.4})`;
-    gc.beginPath();
-    gc.arc(canX + 12*scale + Math.cos(ang)*dist, canY - 27*scale + Math.sin(ang)*dist, Math.random()*1.5*scale+0.3*scale, 0, Math.PI*2);
-    gc.fill();
-  }
-  gc.restore();
 
-  // "LOOP" label — rotated 90° to fit along the can body
-  gc.save();
-  gc.translate(canX, canY - 10*scale);
-  gc.rotate(-Math.PI / 2);
-  gc.font = `bold ${Math.round(5.5*scale)}px Arial Black, sans-serif`;
-  gc.textAlign = 'center';
-  gc.textBaseline = 'middle';
-  gc.fillStyle = '#fff';
-  gc.shadowColor = 'rgba(0,0,0,0.6)';
-  gc.shadowBlur = 2*scale;
-  gc.fillText('LOOP', 0, 0);
-  gc.restore();
+  // LOOP label
+  uc.save();
+  uc.translate(canX, canY - 10*scale);
+  uc.rotate(-Math.PI / 2);
+  uc.font = `bold ${Math.round(5.5*scale)}px Arial Black, sans-serif`;
+  uc.textAlign = 'center';
+  uc.textBaseline = 'middle';
+  uc.fillStyle = '#fff';
+  uc.shadowColor = 'rgba(0,0,0,0.6)';
+  uc.shadowBlur = 2*scale;
+  uc.fillText('LOOP', 0, 0);
+  uc.restore();
 
-  gc.restore();
+  uc.restore();
 }
 
 function drawUI() {
@@ -1416,6 +1415,10 @@ function drawUI() {
   uc.beginPath();
   uc.arc(W - 130, H - barH/2, brushSize/2 * 0.5 + 3, 0, Math.PI*2);
   uc.stroke();
+
+  // Draw the moving spray can at current lerped position
+  const scale = H / 380;
+  drawCan(sprayX, sprayY - 50*scale);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -1531,32 +1534,27 @@ function sprayPaint(x, y) {
 // Input
 paintCanvas.style.pointerEvents = 'auto';
 
-function sprayLoop() {
-  if(!isDrawing) { sprayRAF = null; return; }
+// Continuous can animation loop — always runs
+function canLoop() {
   sprayX += (targetX - sprayX) * LERP;
   sprayY += (targetY - sprayY) * LERP;
-  sprayPaint(sprayX, sprayY);
-  sprayRAF = requestAnimationFrame(sprayLoop);
+  if(isDrawing && tool === 'spray') sprayPaint(sprayX, sprayY);
+  drawUI();
+  requestAnimationFrame(canLoop);
 }
 
 paintCanvas.addEventListener('mousedown', e => {
   if(menuOpen) return;
   isDrawing = true;
-  sprayX = e.clientX; sprayY = e.clientY;
   targetX = e.clientX; targetY = e.clientY;
-  if(!sprayRAF) sprayRAF = requestAnimationFrame(sprayLoop);
 });
 paintCanvas.addEventListener('mousemove', e => {
   if(menuOpen) return;
-  if(tool === 'eraser') {
-    sprayPaint(e.clientX, e.clientY);
-    return;
-  }
-  if(!isDrawing) return;
   targetX = e.clientX; targetY = e.clientY;
+  if(tool === 'eraser') sprayPaint(e.clientX, e.clientY);
 });
-paintCanvas.addEventListener('mouseup', () => { isDrawing = false; sprayRAF = null; });
-paintCanvas.addEventListener('mouseleave', () => { isDrawing = false; sprayRAF = null; });
+paintCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+paintCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
 
 // Touch support
 paintCanvas.addEventListener('touchstart', e => {
@@ -1625,6 +1623,9 @@ window.addEventListener('resize', () => {
 });
 
 render();
+sprayX = W / 2; sprayY = H / 2;
+targetX = W / 2; targetY = H / 2;
+canLoop();
 </script>
 </body>
 </html>
